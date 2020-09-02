@@ -1,4 +1,8 @@
 # On-My-Way
+
+Front-End: React-Native, Redux, Google Maps API;
+Back-End: Socket.io, Node, Express, Postgres;
+
 User/host have a small difference in views, but most of the views should be the same.
 workflow for a user:
 workflow for a host:
