@@ -10,12 +10,16 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "android": {
+      "package": "com.esyeng.omw",
+      "config": {
+        "googleMaps": { "apiKey": "AIzaSyBRk-3TmV11uPV5tgjGZ5wILtFdVORgodk" }
+      }
+    },
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },

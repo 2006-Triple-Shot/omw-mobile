@@ -1,4 +1,7 @@
 {
+  "name": "onmyway",
+  "version": "1.0.0",
+  "description": "location sharing with friends",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
@@ -7,13 +10,22 @@
     "web": "expo start --web",
     "eject": "expo eject"
   },
+  "author": "esyeng, mcherry",
+  "license": "MIT",
   "dependencies": {
+    "abort-controller": "3.0.0",
     "expo": "~38.0.8",
+    "expo-constants": "~9.1.1",
+    "expo-location": "~8.2.1",
+    "expo-permissions": "~9.0.1",
     "expo-status-bar": "^1.0.2",
     "react": "~16.11.0",
     "react-dom": "~16.11.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-38.0.2.tar.gz",
-    "react-native-web": "~0.11.7"
+    "react-native-maps": "0.27.1",
+    "react-native-modal": "11.5.6",
+    "react-native-web": "~0.11.7",
+    "socket.io-client": "2.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.8.6",
