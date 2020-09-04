@@ -3,61 +3,128 @@ import MapView, {
   PROVIDER_GOOGLE,
   AnimatedRegion,
   Marker,
-  Callout,
 } from "react-native-maps";
-import { StyleSheet, Text, View, Dimensions } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  TextInput,
+  ScrollView,
+} from "react-native";
 import * as Location from "expo-location";
+import io from "socket.io-client";
 
-export default function App() {
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
+const initialRegion = {
+  latitude: 40.742741,
+  longitude: -73.989128,
+  latitudeDelta: 0.0922,
+  longitudeDelta: 0.0421,
+};
+
+let initLocation = {
+  coords: {
+    latitude: 40.742741,
+    longitude: -73.989128,
+  },
+};
+
+const initialMarkers = [];
+
+export default function App(props) {
+  const [location, setLocation] = useState(initLocation);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [mapRegion, setRegion] = useState(initialRegion);
+  const [markers, setMarkers] = useState(initialMarkers);
+  const [chatMsg, setChatMsg] = useState("");
+  const [messages, setMessages] = useState([]);
+
+  const socket = io("http://192.168.1.169:3000");
+
+  const findCurrentLocation = () => {
+    console.log(navigator.geolocation.watchPosition);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        console.log("position:", position);
+        // console.log("Before setLocation", location);
+        setLocation(position);
+        // console.log("After setLocation", location);
+        // setMarkers([...markers, newPin]);
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+    );
+  };
+
+  function watchLocation() {
+    return async function () {
+      let marker = await Location.watchPositionAsync({
+        enableHighAccuracy: true,
+        mayShowUserSettingsDialog: true,
+        timeInterval: 2000,
+      });
+      return marker;
+    };
+  }
+
+  function onRegionChange(region) {
+    setRegion(region);
+  }
+
+  function sendChat() {
+    this.socket.emit("chat message", chatMsg);
+    setChatMsg("");
+  }
 
   useEffect(() => {
-    (async () => {
-      try {
-        let { status } = await Location.requestPermissionsAsync();
-        if (status !== "granted") {
-          setErrorMsg("Permission to access location was denied");
+    let mounted = true; //
+    this.socket = socket;
+    if (mounted) {
+      (async () => {
+        try {
+          let { status } = await Location.requestPermissionsAsync();
+          if (status !== "granted") {
+            setErrorMsg("Permission to access location was denied");
+          }
+          const locale = await Location.getCurrentPositionAsync({
+            enableHighAccuracy: true,
+            maximumAge: 2000,
+            timeout: 20000,
+          });
+          // setLocation(locale);
+          this.socket.emit("test location", location);
+        } catch (err) {
+          let status = Location.getProviderStatusAsync();
+          if (!(await status).locationServicesEnabled) {
+            alert("Enable location services");
+          }
         }
-        let location = await Location.getCurrentPositionAsync({});
-        setLocation(location);
-      } catch (err) {
-        let status = Location.getProviderStatusAsync();
-        if (!(await status).locationServicesEnabled) {
-          alert("Enable location services");
-        }
-      }
-    })();
-  });
-
-  let text = "Waiting..";
-  // if (errorMsg) {
-  //   text = errorMsg;
-  // } else if (location) {
-  //   text = JSON.stringify(location);
-  // }
-  text = location;
+      })();
+    }
+    return function cleanup() {
+      mounted = false;
+    };
+  }, []); // add dependency
 
   return (
     <View style={styles.container}>
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.mapStyle}
-        region={{
-          latitude: 37.78825,
-          longitude: -122.4324,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
+        initialRegion={mapRegion}
+        onRegionChange={onRegionChange}
+        onPress={findCurrentLocation}
       >
-        <Marker
-          coordinate={{ latitude: 37.78825, longitude: -122.4324 }}
-          title={`San Francisco`}
-        >
-          <Callout>
-            <Text>{text}</Text>
-          </Callout>
-        </Marker>
+        {markers.map((pin, index) => {
+          return (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: pin.coords.latitude,
+                longitude: pin.coords.longitude,
+              }}
+            ></Marker>
+          );
+        })}
       </MapView>
     </View>
   );
@@ -66,8 +133,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
+    backgroundColor: "#c7f5f2",
     justifyContent: "center",
   },
   mapStyle: {
