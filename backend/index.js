@@ -1,21 +1,25 @@
+const http = require("http");
 const express = require("express");
+const socketIO = require("socket.io");
+const PORT = process.env.PORT || 5000;
 const app = express();
-const server = require("http").createServer(app);
-const io = require("socket.io").listen(server);
-const port = 3000;
-
+const server = http.createServer(app);
+const io = socketIO(server);
 io.on("connection", (socket) => {
-  console.log("someone connected ok");
-  socket.on("chat message", (msg) => {
-    console.log(msg);
-    io.emit("chat message", msg);
+  console.log("client connected on websocket from server file");
+  socket.on("longitude", (longitude) => {
+    console.log("Longitude : ", longitude);
   });
-
-  socket.on("test location", (location) => {
-    console.log("test received", location);
+  socket.on("latitude", (latitude) => {
+    console.log("Longitude : ", latitude);
+  });
+  socket.on("i-am-connected", () => {
+    console.log("I am Connected");
   });
 });
-
-server.listen(port, () => {
-  console.log("server running on port:" + port);
+setInterval(() => {
+  io.emit("ping", { data: new Date() / 1 });
+}, 1000);
+server.listen(PORT, () => {
+  console.log("server started and listening on port " + PORT);
 });
