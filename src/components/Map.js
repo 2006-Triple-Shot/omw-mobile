@@ -1,143 +1,216 @@
-import React, { useState, useEffect } from "react";
-import MapView, {
-  PROVIDER_GOOGLE,
-  AnimatedRegion,
-  Marker,
-} from "react-native-maps";
+import React, { Component } from "react";
 import {
+  Platform,
   StyleSheet,
   Text,
   View,
-  Dimensions,
   TextInput,
-  ScrollView,
+  Keyboard,
 } from "react-native";
-import * as Location from "expo-location";
-import io from "socket.io-client";
+import MapView, { Marker, AnimatedRegion } from "react-native-maps";
+import { apiKey } from "./secret";
+import _ from "lodash";
+import { socket, startSocketIO, sendLocation } from "./src/socket";
 
-const initialRegion = {
-  latitude: 40.742741,
-  longitude: -73.989128,
-  latitudeDelta: 0.0922,
-  longitudeDelta: 0.0421,
-};
+export default class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoading: true,
+      latitude: 0,
+      longitude: 0,
+      error: null,
+      destination: "",
+      predictions: [],
+      myPosition: {
+        latitude: 0,
+        longitude: 0,
+        timestamp: 0,
+      },
+      friends: {},
+      coordinate: new AnimatedRegion({
+        latitude: 0,
+        longitude: 0,
+      }),
+    };
+    this.socket = socket;
+  }
 
-let initLocation = {
-  coords: {
-    latitude: 40.742741,
-    longitude: -73.989128,
-  },
-};
-
-const initialMarkers = [];
-
-export default function App(props) {
-  const [location, setLocation] = useState(initLocation);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [mapRegion, setRegion] = useState(initialRegion);
-  const [markers, setMarkers] = useState(initialMarkers);
-  const [chatMsg, setChatMsg] = useState("");
-  const [messages, setMessages] = useState([]);
-
-  const socket = io("http://192.168.1.169:3000");
-
-  const findCurrentLocation = () => {
-    console.log(navigator.geolocation.watchPosition);
+  componentDidMount() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log("position:", position);
-        // console.log("Before setLocation", location);
-        setLocation(position);
-        // console.log("After setLocation", location);
-        // setMarkers([...markers, newPin]);
+        this.setState({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          error: null,
+        });
+        this.socket.emit("position", {
+          data: position,
+          id: this.id,
+        });
+        let tempPosition = { ...this.state.myPosition };
+        tempPosition.latitude = position.coords.latitude;
+        tempPosition.longitude = position.coords.longitude;
+
+        this.setState({
+          myPosition: tempPosition,
+          isLoading: false,
+        });
       },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-    );
-  };
+      (error) => this.setState({ error: error.message })
+    ),
+      { enableHighAccuracy: true, timeout: 20000, minimumAge: 2000 };
+  }
 
-  function watchLocation() {
-    return async function () {
-      let marker = await Location.watchPositionAsync({
-        enableHighAccuracy: true,
-        mayShowUserSettingsDialog: true,
-        timeInterval: 2000,
+  async onChangeDestination(destination) {
+    this.setState({ destination });
+    const apiURL = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${apiKey}&input=${destination}&location=${this.state.latitude},${this.state.longitude}&radius=2000`;
+    try {
+      const result = await fetch(apiURL);
+      const json = await result.json();
+      console.log("result JSON:", json);
+      this.setState({
+        predictions: json.predictions,
       });
-      return marker;
-    };
-  }
-
-  function onRegionChange(region) {
-    setRegion(region);
-  }
-
-  function sendChat() {
-    this.socket.emit("chat message", chatMsg);
-    setChatMsg("");
-  }
-
-  useEffect(() => {
-    let mounted = true; //
-    this.socket = socket;
-    if (mounted) {
-      (async () => {
-        try {
-          let { status } = await Location.requestPermissionsAsync();
-          if (status !== "granted") {
-            setErrorMsg("Permission to access location was denied");
-          }
-          const locale = await Location.getCurrentPositionAsync({
-            enableHighAccuracy: true,
-            maximumAge: 2000,
-            timeout: 20000,
-          });
-          // setLocation(locale);
-          this.socket.emit("test location", location);
-        } catch (err) {
-          let status = Location.getProviderStatusAsync();
-          if (!(await status).locationServicesEnabled) {
-            alert("Enable location services");
-          }
-        }
-      })();
+    } catch (err) {
+      console.error(err);
     }
-    return function cleanup() {
-      mounted = false;
-    };
-  }, []); // add dependency
+  }
 
-  return (
-    <View style={styles.container}>
-      <MapView
-        provider={PROVIDER_GOOGLE}
-        style={styles.mapStyle}
-        initialRegion={mapRegion}
-        onRegionChange={onRegionChange}
-        onPress={findCurrentLocation}
+  pressedPrediction(prediction) {
+    console.log(prediction);
+    Keyboard.dismiss();
+    this.setState({
+      locationPredictions: [],
+      destination: prediction.description,
+    });
+    Keyboard;
+  }
+
+  // watchLocation() {
+  //   this.watchID = navigator.geolocation.watchPosition(
+  //   position => {
+  //     const { latitude, longitude } = position.coords;
+  //     const newCoordinate = {
+  //       latitude,
+  //       longitude
+  //     };
+  //   }
+  //   )
+  // }
+
+  render() {
+    this.socket.on("otherPositions", (positionData) => {
+      let tempFriends = { ...this.state.friends };
+      tempFriends[positionData.id] = { ...positionData };
+
+      this.setState({
+        friends: tempFriends,
+      });
+    });
+
+    let friendsPositionsArr = Object.values(this.state.friends);
+
+    let myLat = this.state.myPosition.latitude;
+    let myLong = this.state.myPosition.longitude;
+    const coords = {
+      latitude: myLat,
+      longitude: myLong,
+    };
+
+    const predictions = this.state.predictions.map((prediction) => (
+      <Text
+        onChangeDestination={this.pressedPrediction}
+        key={prediction.id}
+        style={styles.suggestions}
       >
-        {markers.map((pin, index) => {
-          return (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: pin.coords.latitude,
-                longitude: pin.coords.longitude,
-              }}
-            ></Marker>
-          );
-        })}
-      </MapView>
-    </View>
-  );
+        {prediction.description}
+      </Text>
+    ));
+    return (
+      <View style={styles.container}>
+        <MapView
+          style={styles.map}
+          region={{
+            latitude: myLat,
+            longitude: myLong,
+            latitudeDelta: 0.095,
+            longitudeDelta: 0.0621,
+          }}
+          showsUserLocation={true}
+        >
+          <Marker
+            coordinate={coords}
+            timestamp={this.state.myPosition.timestamp}
+            description="Me"
+          />
+
+          {friendsPositionsArr.map((marker) => {
+            const friendCoords = {
+              latitude: marker.data.coords.latitude,
+              longitude: marker.data.coords.longitude,
+            };
+
+            return (
+              <Marker
+                key={marker.id}
+                coordinate={friendCoords}
+                description={"Friend"}
+                title={marker.id}
+              />
+            );
+          })}
+
+          <TextInput
+            placeholder="Enter destination"
+            style={styles.destinationInput}
+            value={this.state.destination}
+            onChangeText={(destination) =>
+              this.onChangeDestination(destination)
+            }
+            title="input-bar"
+            onSubmitEditing={this.newLocation}
+          />
+          {/* {predictions} */}
+
+          <Marker
+            coordinate={{
+              latitude: this.state.latitude,
+              longitude: this.state.longitude,
+            }}
+          ></Marker>
+        </MapView>
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#c7f5f2",
-    justifyContent: "center",
+  suggestions: {
+    backgroundColor: "white",
+    padding: 5,
+    fontSize: 18,
+    borderWidth: 0.5,
+    marginLeft: 5,
+    marginRight: 5,
   },
-  mapStyle: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
+  destinationInput: {
+    height: 40,
+    borderWidth: 0.5,
+    marginTop: 50,
+    marginLeft: 5,
+    marginRight: 5,
+    padding: 5,
+    backgroundColor: "white",
+  },
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    // height: 400,
+    // width: 400,
+    // justifyContent: "flex-end",
+    // alignItems: "center",
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
   },
 });

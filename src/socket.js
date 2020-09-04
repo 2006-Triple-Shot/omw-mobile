@@ -14,7 +14,7 @@ export const startSocketIO = () => {
 };
 export const sendlocation = (lat, long) => {
   if (socket) {
-    socket.emit("longitude", lat);
-    socket.emit("latitude", long);
+    socket.emit("location", lat, long);
+    // socket.emit("latitude", long);
   }
 };

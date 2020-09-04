@@ -1,15 +1,7 @@
 import React, { Component } from "react";
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Keyboard,
-} from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { Platform, StyleSheet, Text, View, TextInput } from "react-native";
+import MapView, { Marker, AnimatedRegion } from "react-native-maps";
 import { apiKey } from "./secret";
-import _ from "lodash";
 
 export default class App extends Component {
   constructor(props) {
@@ -20,6 +12,7 @@ export default class App extends Component {
       error: null,
       destination: "",
       predictions: [],
+      myLocation: {},
     };
   }
 
@@ -30,6 +23,10 @@ export default class App extends Component {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           error: null,
+          // myLocation: {
+          //   latitude: position.coords.latitude,
+          //   longitude: position.coords.longitude,
+          // },
         });
       },
       (error) => this.setState({ error: error.message })
@@ -52,26 +49,7 @@ export default class App extends Component {
     }
   }
 
-  pressedPrediction(prediction) {
-    console.log(prediction);
-    Keyboard.dismiss();
-    this.setState({
-      locationPredictions: [],
-      destination: prediction.description,
-    });
-    Keyboard;
-  }
-
   render() {
-    const predictions = this.state.predictions.map((prediction) => (
-      <Text
-        onChangeDestination={this.pressedPrediction}
-        key={prediction.id}
-        style={styles.suggestions}
-      >
-        {prediction.description}
-      </Text>
-    ));
     return (
       <View style={styles.container}>
         <MapView
@@ -83,7 +61,10 @@ export default class App extends Component {
             longitudeDelta: 0.0621,
           }}
           showsUserLocation={true}
+          followsUserLocation={true}
+          loadingEnabled={true}
         >
+          <Marker coordinate={this.state}></Marker>
           <TextInput
             placeholder="Enter destination"
             style={styles.destinationInput}
@@ -92,9 +73,6 @@ export default class App extends Component {
               this.onChangeDestination(destination)
             }
           />
-          {/* {predictions} */}
-
-          <Marker coordinate={this.state}></Marker>
         </MapView>
       </View>
     );
@@ -102,14 +80,6 @@ export default class App extends Component {
 }
 
 const styles = StyleSheet.create({
-  suggestions: {
-    backgroundColor: "white",
-    padding: 5,
-    fontSize: 18,
-    borderWidth: 0.5,
-    marginLeft: 5,
-    marginRight: 5,
-  },
   destinationInput: {
     height: 40,
     borderWidth: 0.5,
@@ -121,10 +91,6 @@ const styles = StyleSheet.create({
   },
   container: {
     ...StyleSheet.absoluteFillObject,
-    // height: 400,
-    // width: 400,
-    // justifyContent: "flex-end",
-    // alignItems: "center",
   },
   map: {
     ...StyleSheet.absoluteFillObject,
