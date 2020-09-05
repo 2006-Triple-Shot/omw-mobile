@@ -13,6 +13,9 @@ import MapView, { Marker, Polyline } from "react-native-maps";
 import { apiKey } from "../../../secret";
 import _ from "lodash";
 import polyline from "@mapbox/polyline";
+import io from "socket.io-client";
+import Share from "../Share";
+export const socket = io("http://192.168.1.169:5000");
 
 export default class Passenger extends Component {
   constructor(props) {
@@ -24,11 +27,14 @@ export default class Passenger extends Component {
       destination: "",
       predictions: [],
       pointCoords: [],
+      routeResponse: {},
+      lookingForDriver: false,
     };
     this.onChangeDestinationDebounced = _.debounce(
       this.onChangeDestination,
       1000
     );
+    this.socket = socket;
   }
 
   componentDidMount() {
@@ -38,15 +44,12 @@ export default class Passenger extends Component {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
-        // this.getRouteDirections();
       },
       (error) => this.setState({ error: error.message }),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
     );
   }
-  // componentWillMount() {
-  //   navigator.geolocation.clearWatch(this.watchId);
-  // }
+
   async getRouteDirections(destinationPlaceId, destinationName) {
     try {
       const response = await fetch(
@@ -63,9 +66,12 @@ export default class Passenger extends Component {
         pointCoords,
         predictions: [],
         destination: destinationName,
+        routeResponse: json,
       });
       Keyboard.dismiss();
-      this.map.fitToCoordinates(pointCoords);
+      this.map.fitToCoordinates(pointCoords, {
+        edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
+      });
     } catch (error) {
       console.error(error);
     }
@@ -74,11 +80,9 @@ export default class Passenger extends Component {
   async onChangeDestination(destination) {
     this.setState({ destination });
     const apiURL = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${apiKey}&input=${destination}&location=${this.state.latitude},${this.state.longitude}&radius=2000`;
-    console.log(apiURL);
     try {
       const result = await fetch(apiURL);
       const json = await result.json();
-      // console.log("json :", json);
       this.setState({
         predictions: json.predictions,
       });
@@ -86,6 +90,14 @@ export default class Passenger extends Component {
       console.error(err);
     }
   }
+
+  requestDriver() {
+    console.log("looking for driver");
+    this.socket.on("connect", (message) => {
+      socket.emit("taxiRequest", this.state.routeResponse);
+    });
+  }
+
   render() {
     let marker = null;
     let driverButton = null;
@@ -98,13 +110,17 @@ export default class Passenger extends Component {
         />
       );
       driverButton = (
-        <TouchableOpacity style={styles.bottomButton}>
+        <TouchableOpacity
+          style={styles.bottomButton}
+          onPress={() => this.requestDriver()}
+        >
           <View>
             <Text style={styles.bottomButtonText}>Find Driver</Text>
           </View>
         </TouchableOpacity>
       );
     }
+
     const predictions = this.state.predictions.map((prediction, index) => (
       <TouchableHighlight
         key={index}
@@ -122,6 +138,7 @@ export default class Passenger extends Component {
         </View>
       </TouchableHighlight>
     ));
+
     return (
       <View style={styles.container}>
         <MapView
@@ -151,7 +168,7 @@ export default class Passenger extends Component {
           clearButtonMode="always"
           onChangeText={(destination) => {
             console.log("button destination :", destination);
-            this.setState({ destination });
+            this.setState({ destination, pointCoords: [] });
             this.onChangeDestinationDebounced(destination);
           }}
         />

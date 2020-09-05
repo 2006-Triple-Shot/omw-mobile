@@ -50,7 +50,6 @@ export default class App extends Component {
     try {
       const result = await fetch(apiURL);
       const json = await result.json();
-      console.log("result JSON:", json);
       this.setState({
         predictions: json.predictions,
       });
