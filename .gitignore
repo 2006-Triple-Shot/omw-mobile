@@ -13,3 +13,4 @@ web-build/
 .DS_Store
 secrets.js
 google-api.js
+secret.js

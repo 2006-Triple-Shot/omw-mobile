@@ -7,13 +7,14 @@ import {
   TextInput,
   TouchableHighlight,
   Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { apiKey } from "./google-api";
+import { apiKey } from "../../../secret";
 import _ from "lodash";
 import polyline from "@mapbox/polyline";
 
-export default class App extends Component {
+export default class Passenger extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -23,7 +24,6 @@ export default class App extends Component {
       destination: "",
       predictions: [],
       pointCoords: [],
-      // locationPredictions: [],
     };
     this.onChangeDestinationDebounced = _.debounce(
       this.onChangeDestination,
@@ -54,7 +54,7 @@ export default class App extends Component {
         &destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
       const json = await response.json();
-      console.log("json :", json);
+      // console.log("json :", json);
       const points = polyline.decode(json.routes[0].overview_polyline.points);
       const pointCoords = points.map((point) => {
         return { latitude: point[0], longitude: point[1] };
@@ -78,7 +78,7 @@ export default class App extends Component {
     try {
       const result = await fetch(apiURL);
       const json = await result.json();
-      console.log("json :", json);
+      // console.log("json :", json);
       this.setState({
         predictions: json.predictions,
       });
@@ -88,6 +88,8 @@ export default class App extends Component {
   }
   render() {
     let marker = null;
+    let driverButton = null;
+
     if (this.state.latitude === null) return null;
     if (this.state.pointCoords.length > 1) {
       marker = (
@@ -95,10 +97,17 @@ export default class App extends Component {
           coordinate={this.state.pointCoords[this.state.pointCoords.length - 1]}
         />
       );
+      driverButton = (
+        <TouchableOpacity style={styles.bottomButton}>
+          <View>
+            <Text style={styles.bottomButtonText}>Find Driver</Text>
+          </View>
+        </TouchableOpacity>
+      );
     }
-    const predictions = this.state.predictions.map((prediction) => (
+    const predictions = this.state.predictions.map((prediction, index) => (
       <TouchableHighlight
-        key={prediction.id}
+        key={index}
         onPress={() =>
           this.getRouteDirections(
             prediction.place_id,
@@ -131,7 +140,7 @@ export default class App extends Component {
           <Polyline
             coordinates={this.state.pointCoords}
             strokeWidth={4}
-            strokeColor="red"
+            strokeColor="blue"
           />
           {marker}
         </MapView>
@@ -147,12 +156,26 @@ export default class App extends Component {
           }}
         />
         {predictions}
+        {driverButton}
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  bottomButton: {
+    backgroundColor: "black",
+    marginTop: "auto",
+    margin: 20,
+    padding: 15,
+    paddingLeft: 30,
+    paddingRight: 30,
+    alignSelf: "center",
+  },
+  bottomButtonText: {
+    color: "white",
+    fontSize: 20,
+  },
   suggestions: {
     backgroundColor: "white",
     padding: 5,

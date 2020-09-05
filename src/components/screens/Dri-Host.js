@@ -9,11 +9,11 @@ import {
   Keyboard,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { apiKey } from "./google-api";
+import { apiKey } from "../../../secret";
 import _ from "lodash";
 import polyline from "@mapbox/polyline";
 
-export default class App extends Component {
+export default class Driver extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -54,7 +54,7 @@ export default class App extends Component {
         &destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
       const json = await response.json();
-      console.log("json :", json);
+      // console.log("json :", json);
       const points = polyline.decode(json.routes[0].overview_polyline.points);
       const pointCoords = points.map((point) => {
         return { latitude: point[0], longitude: point[1] };
@@ -78,7 +78,7 @@ export default class App extends Component {
     try {
       const result = await fetch(apiURL);
       const json = await result.json();
-      console.log("json :", json);
+      // console.log("json :", json);
       this.setState({
         predictions: json.predictions,
       });
@@ -96,9 +96,9 @@ export default class App extends Component {
         />
       );
     }
-    const predictions = this.state.predictions.map((prediction) => (
+    const predictions = this.state.predictions.map((prediction, index) => (
       <TouchableHighlight
-        key={prediction.id}
+        key={index}
         onPress={() =>
           this.getRouteDirections(
             prediction.place_id,
