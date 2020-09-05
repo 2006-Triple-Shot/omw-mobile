@@ -7,12 +7,14 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      isLoading: true,
       latitude: 0,
       longitude: 0,
       error: null,
       destination: "",
       predictions: [],
       myLocation: {},
+      friends: {},
     };
   }
 
@@ -23,10 +25,18 @@ export default class App extends Component {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           error: null,
-          // myLocation: {
-          //   latitude: position.coords.latitude,
-          //   longitude: position.coords.longitude,
-          // },
+        });
+        this.socket.emit("position", {
+          data: position,
+          id: this.id,
+        });
+        let tempPosition = { ...this.state.myPosition };
+        tempPosition.latitude = position.coords.latitude;
+        tempPosition.longitude = position.coords.longitude;
+
+        this.setState({
+          myPosition: tempPosition,
+          isLoading: false,
         });
       },
       (error) => this.setState({ error: error.message })
@@ -50,6 +60,7 @@ export default class App extends Component {
   }
 
   render() {
+    //
     return (
       <View style={styles.container}>
         <MapView
@@ -80,6 +91,15 @@ export default class App extends Component {
 }
 
 const styles = StyleSheet.create({
+  suggestions: {
+    backgroundColor: "white",
+    padding: 5,
+    fontSize: 18,
+    borderWidth: 0.5,
+    marginLeft: 5,
+    marginRight: 5,
+    position: "absolute",
+  },
   destinationInput: {
     height: 40,
     borderWidth: 0.5,
@@ -88,9 +108,14 @@ const styles = StyleSheet.create({
     marginRight: 5,
     padding: 5,
     backgroundColor: "white",
+    position: "absolute",
   },
   container: {
     ...StyleSheet.absoluteFillObject,
+    // height: 400,
+    // width: 400,
+    // justifyContent: "flex-end",
+    // alignItems: "center",
   },
   map: {
     ...StyleSheet.absoluteFillObject,

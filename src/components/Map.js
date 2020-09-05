@@ -1,16 +1,7 @@
 import React, { Component } from "react";
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Keyboard,
-} from "react-native";
+import { Platform, StyleSheet, Text, View, TextInput } from "react-native";
 import MapView, { Marker, AnimatedRegion } from "react-native-maps";
 import { apiKey } from "./secret";
-import _ from "lodash";
-import { socket, startSocketIO, sendLocation } from "./src/socket";
 
 export default class App extends Component {
   constructor(props) {
@@ -22,18 +13,9 @@ export default class App extends Component {
       error: null,
       destination: "",
       predictions: [],
-      myPosition: {
-        latitude: 0,
-        longitude: 0,
-        timestamp: 0,
-      },
+      myLocation: {},
       friends: {},
-      coordinate: new AnimatedRegion({
-        latitude: 0,
-        longitude: 0,
-      }),
     };
-    this.socket = socket;
   }
 
   componentDidMount() {
@@ -77,47 +59,7 @@ export default class App extends Component {
     }
   }
 
-  pressedPrediction(prediction) {
-    console.log(prediction);
-    Keyboard.dismiss();
-    this.setState({
-      locationPredictions: [],
-      destination: prediction.description,
-    });
-    Keyboard;
-  }
-
-  // watchLocation() {
-  //   this.watchID = navigator.geolocation.watchPosition(
-  //   position => {
-  //     const { latitude, longitude } = position.coords;
-  //     const newCoordinate = {
-  //       latitude,
-  //       longitude
-  //     };
-  //   }
-  //   )
-  // }
-
   render() {
-    this.socket.on("otherPositions", (positionData) => {
-      let tempFriends = { ...this.state.friends };
-      tempFriends[positionData.id] = { ...positionData };
-
-      this.setState({
-        friends: tempFriends,
-      });
-    });
-
-    let friendsPositionsArr = Object.values(this.state.friends);
-
-    let myLat = this.state.myPosition.latitude;
-    let myLong = this.state.myPosition.longitude;
-    const coords = {
-      latitude: myLat,
-      longitude: myLong,
-    };
-
     const predictions = this.state.predictions.map((prediction) => (
       <Text
         onChangeDestination={this.pressedPrediction}
@@ -132,35 +74,17 @@ export default class App extends Component {
         <MapView
           style={styles.map}
           region={{
-            latitude: myLat,
-            longitude: myLong,
+            latitude: this.state.latitude,
+            longitude: this.state.longitude,
             latitudeDelta: 0.095,
             longitudeDelta: 0.0621,
           }}
           showsUserLocation={true}
+          followsUserLocation={true}
+          loadingEnabled={true}
         >
-          <Marker
-            coordinate={coords}
-            timestamp={this.state.myPosition.timestamp}
-            description="Me"
-          />
-
-          {friendsPositionsArr.map((marker) => {
-            const friendCoords = {
-              latitude: marker.data.coords.latitude,
-              longitude: marker.data.coords.longitude,
-            };
-
-            return (
-              <Marker
-                key={marker.id}
-                coordinate={friendCoords}
-                description={"Friend"}
-                title={marker.id}
-              />
-            );
-          })}
-
+          <Marker coordinate={this.state}></Marker>
+          {predictions}
           <TextInput
             placeholder="Enter destination"
             style={styles.destinationInput}
@@ -168,17 +92,7 @@ export default class App extends Component {
             onChangeText={(destination) =>
               this.onChangeDestination(destination)
             }
-            title="input-bar"
-            onSubmitEditing={this.newLocation}
           />
-          {/* {predictions} */}
-
-          <Marker
-            coordinate={{
-              latitude: this.state.latitude,
-              longitude: this.state.longitude,
-            }}
-          ></Marker>
         </MapView>
       </View>
     );
@@ -193,6 +107,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     marginLeft: 5,
     marginRight: 5,
+    position: "absolute",
   },
   destinationInput: {
     height: 40,
@@ -202,6 +117,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
     padding: 5,
     backgroundColor: "white",
+    position: "absolute",
   },
   container: {
     ...StyleSheet.absoluteFillObject,
