@@ -1,13 +1,11 @@
 import React, { Component } from "react";
 import {
-  Platform,
   StyleSheet,
   Text,
   View,
   TextInput,
   TouchableHighlight,
   Keyboard,
-  TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
@@ -17,6 +15,7 @@ import polyline from "@mapbox/polyline";
 import socketIO from "socket.io-client";
 import Location from "expo-location";
 import BottomButton from "./BottomButton";
+
 export default class Passenger extends Component {
   constructor(props) {
     super(props);
@@ -28,11 +27,15 @@ export default class Passenger extends Component {
       pointCoords: [],
       routeResponse: {},
       lookingForDriver: false,
+      driverIsOnTheWay: false,
     };
     this.onChangeDestinationDebounced = _.debounce(
       this.onChangeDestination,
       1000
     );
+  }
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.watchId);
   }
 
   componentDidMount() {
@@ -78,14 +81,13 @@ export default class Passenger extends Component {
   async onChangeDestination(destination) {
     const apiUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${apiKey}
     &input=${destination}&location=${this.state.latitude},${this.state.longitude}&radius=2000`;
-    // console.log(apiUrl);
+
     try {
       const result = await fetch(apiUrl);
       const json = await result.json();
       this.setState({
         predictions: json.predictions,
       });
-      // console.log(json);
     } catch (err) {
       console.error(err);
     }
@@ -100,17 +102,44 @@ export default class Passenger extends Component {
     const socket = socketIO.connect("http://192.168.0.152:5000");
     socket.on("connection", () => {
       console.log("passenger requesting cab");
-      //Request a taxi!
       socket.emit("taxiRequest", this.state.routeResponse);
     });
-    socket.on("driver coming", () => {
-      console.log("passenger heard driver coming");
+    socket.on("driverLocation", (driverLocation) => {
+      const pointCoords = [...this.state.pointCoords, driverLocation];
+      this.map.fitToCoordinates(pointCoords, {
+        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      });
+      this.setState({
+        lookingForDriver: false,
+        driverIsOnTheWay: true,
+        driverLocation,
+      });
     });
   }
 
   render() {
     let marker = null;
     let getDriver = null;
+    let findingDriverActIndicator = null;
+    let driverMarker = null;
+    if (this.state.driverIsOnTheWay) {
+      driverMarker = (
+        <Marker coordinate={this.state.driverLocation}>
+          <Image
+            source={require("../images/carIcon.png")}
+            style={{ width: 40, height: 40 }}
+          />
+        </Marker>
+      );
+    }
+    if (this.state.lookingForDriver) {
+      findingDriverActIndicator = (
+        <ActivityIndicator
+          size="large"
+          animating={this.state.lookingForDriver}
+        />
+      );
+    }
 
     if (this.state.pointCoords.length > 1) {
       marker = (
@@ -124,7 +153,9 @@ export default class Passenger extends Component {
           key={this.getRandomInt()}
           onPressFunction={() => this.requestDriver()}
           buttonText="REQUEST 🚗"
-        />
+        >
+          {findingDriverActIndicator}
+        </BottomButton>
       );
     }
 
@@ -176,7 +207,6 @@ export default class Passenger extends Component {
           value={this.state.destination}
           clearButtonMode="always"
           onChangeText={(destination) => {
-            console.log(destination);
             this.setState({ destination, pointCoords: [] });
             this.onChangeDestinationDebounced(destination);
           }}

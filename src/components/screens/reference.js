@@ -9,98 +9,123 @@ import {
   Alert,
 } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
-import BottomButton from "./BottomButton";
-import { apiKey } from "./google-api";
-import polyline from "@mapbox/polyline";
+import BottomButton from "../components/BottomButton";
 import socketIO from "socket.io-client";
-import * as Location from "expo-location";
-import { isNull } from "lodash";
-// import * as TaskManager from "expo-task-manager";
 import BackgroundGeolocation from "react-native-mauron85-background-geolocation";
 
 export default class Driver extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      latitude: 0,
-      longitude: 0,
-      destination: "",
-      predictions: [],
-      pointCoords: [],
       lookingForPassengers: false,
-      buttonText: "Look for Passengers",
     };
     this.acceptPassengerRequest = this.acceptPassengerRequest.bind(this);
     this.findPassengers = this.findPassengers.bind(this);
     this.socket = null;
   }
-  componentWillUnmount() {
-    navigator.geolocation.clearWatch(this.watchId);
-  }
+
   componentDidMount() {
-    this.watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        this.setState({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-      },
-      (error) => console.log(error),
-      { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
-    );
-    // Location.startLocationUpdatesAsync(taskName, options);
-  }
+    BackgroundGeolocation.configure({
+      desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
+      stationaryRadius: 50,
+      distanceFilter: 50,
+      debug: false,
+      startOnBoot: false,
+      stopOnTerminate: true,
+      locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
+      interval: 10000,
+      fastestInterval: 5000,
+      activitiesInterval: 10000,
+      stopOnStillActivity: false,
+    });
 
-  async getRouteDirections(destinationPlaceId) {
-    try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}&destination=place_id:${destinationPlaceId}&key=${apiKey}`
+    BackgroundGeolocation.on("authorization", (status) => {
+      console.log(
+        "[INFO] BackgroundGeolocation authorization status: " + status
       );
-      const json = await response.json();
+      if (status !== BackgroundGeolocation.AUTHORIZED) {
+        // we need to set delay or otherwise alert may not be shown
+        setTimeout(
+          () =>
+            Alert.alert(
+              "App requires location tracking permission",
+              "Would you like to open app settings?",
+              [
+                {
+                  text: "Yes",
+                  onPress: () => BackgroundGeolocation.showAppSettings(),
+                },
+                {
+                  text: "No",
+                  onPress: () => console.log("No Pressed"),
+                  style: "cancel",
+                },
+              ]
+            ),
+          1000
+        );
+      }
+    });
+  }
 
-      const points = polyline.decode(json.routes[0].overview_polyline.points);
-      const pointCoords = points.map((point) => {
-        return { latitude: point[0], longitude: point[1] };
-      });
-      this.setState({
-        pointCoords,
-        routeResponse: json,
-      });
-      this.map.fitToCoordinates(pointCoords, {
-        edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  getRandomInt() {
-    return Math.floor(Math.random() * Math.floor(1000));
-  }
   findPassengers() {
     if (!this.state.lookingForPassengers) {
       this.setState({ lookingForPassengers: true });
 
-      this.socket = socketIO.connect("http://192.168.0.152:5000");
+      console.log(this.state.lookingForPassengers);
 
-      this.socket.on("connection", () => {
-        this.socket.emit("passesngerRequest");
+      this.socket = socketIO.connect("http://192.168.0.27:3000");
+
+      this.socket.on("connect", () => {
+        this.socket.emit("passengerRequest");
       });
 
-      this.socket.on("taxiRequest", (routeResponse) => {
+      this.socket.on("taxiRequest", async (routeResponse) => {
         console.log(routeResponse);
         this.setState({
           lookingForPassengers: false,
           passengerFound: true,
           routeResponse,
         });
-        this.getRouteDirections(routeResponse.geocoded_waypoints[0].place_id);
+        await this.props.getRouteDirections(
+          routeResponse.geocoded_waypoints[0].place_id
+        );
+        this.map.fitToCoordinates(this.props.pointCoords, {
+          edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
+        });
       });
     }
   }
+
   acceptPassengerRequest() {
-    const passengerLocation = this.state.pointCoords[
-      this.state.pointCoords.length - 1
+    const passengerLocation = this.props.pointCoords[
+      this.props.pointCoords.length - 1
     ];
+
+    BackgroundGeolocation.on("location", (location) => {
+      //Send driver location to passenger
+      this.socket.emit("driverLocation", {
+        latitude: location.latitude,
+        longitude: location.longitude,
+      });
+    });
+
+    BackgroundGeolocation.checkStatus((status) => {
+      // you don't need to check status before start (this is just the example)
+      if (!status.isRunning) {
+        BackgroundGeolocation.start(); //triggers start on start event
+      }
+    });
+
+    if (Platform.OS === "ios") {
+      Linking.openURL(
+        `http://maps.apple.com/?daddr=${passengerLocation.latitude},${passengerLocation.longitude}`
+      );
+    } else {
+      Linking.openURL(
+        `geo:0,0?q=${passengerLocation.latitude},${passengerLocation.longitude}(Passenger)`
+      );
+    }
   }
 
   render() {
@@ -109,13 +134,13 @@ export default class Driver extends Component {
     let findingPassengerActIndicator = null;
     let passengerSearchText = "FIND PASSENGERS 👥";
     let bottomButtonFunction = this.findPassengers;
-    if (!this.state.latitude) return null;
+
+    if (!this.props.latitude) return null;
 
     if (this.state.lookingForPassengers) {
       passengerSearchText = "FINDING PASSENGERS...";
       findingPassengerActIndicator = (
         <ActivityIndicator
-          key={this.getRandomInt()}
           size="large"
           animating={this.state.lookingForPassengers}
         />
@@ -127,11 +152,10 @@ export default class Driver extends Component {
       bottomButtonFunction = this.acceptPassengerRequest;
     }
 
-    if (this.state.pointCoords.length > 1) {
+    if (this.props.pointCoords.length > 1) {
       endMarker = (
         <Marker
-          key={this.getRandomInt()}
-          coordinate={this.state.pointCoords[this.state.pointCoords.length - 1]}
+          coordinate={this.props.pointCoords[this.props.pointCoords.length - 1]}
         >
           <Image
             style={{ width: 40, height: 40 }}
@@ -144,21 +168,20 @@ export default class Driver extends Component {
     return (
       <View style={styles.container}>
         <MapView
-          key={this.getRandomInt()}
           ref={(map) => {
             this.map = map;
           }}
           style={styles.map}
           region={{
-            latitude: this.state.latitude,
-            longitude: this.state.longitude,
+            latitude: this.props.latitude,
+            longitude: this.props.longitude,
             latitudeDelta: 0.015,
             longitudeDelta: 0.0121,
           }}
           showsUserLocation={true}
         >
           <Polyline
-            coordinates={this.state.pointCoords}
+            coordinates={this.props.pointCoords}
             strokeWidth={4}
             strokeColor="red"
           />
@@ -166,10 +189,8 @@ export default class Driver extends Component {
           {startMarker}
         </MapView>
         <BottomButton
-          onPressFunction={() => {
-            this.findPassengers();
-          }}
-          buttonText={this.state.buttonText}
+          onPressFunction={bottomButtonFunction}
+          buttonText={passengerSearchText}
         >
           {findingPassengerActIndicator}
         </BottomButton>

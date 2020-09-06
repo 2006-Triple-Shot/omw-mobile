@@ -1,48 +1,33 @@
-const http = require("http");
 const express = require("express");
-const socketIO = require("socket.io");
-const PORT = process.env.PORT || 5000;
 const app = express();
-const server = http.createServer(app);
-const io = socketIO(server);
+const server = require("http").createServer(app);
+const io = require("socket.io").listen(server);
+const PORT = process.env.PORT || 5000;
+
 let taxiSocket = null;
-let routeResponse = null;
-let count = 0;
+let passengerSocket = null;
 
 io.on("connection", (socket) => {
-  count++;
-  console.log("connection recieved on server", count);
-
-  socket.on("taxiRequest", (routeResponse) => {
-    console.log("BACKEND-TAXIREQUEST-cooords: ", routeResponse);
+  console.log("a user connected :D");
+  socket.on("taxiRequest", (taxiRoute) => {
+    passengerSocket = socket;
+    console.log("Someone wants a taxi!");
     if (taxiSocket !== null) {
-      socket.emit("taxiRequest", routeResponse);
+      taxiSocket.emit("taxiRequest", taxiRoute);
     }
   });
 
-  socket.on("lookingForPassengers", () => {
-    console.log("Someone is looking for a passenger");
+  socket.on("driverLocation", (driverLocation) => {
+    console.log(driverLocation);
+    passengerSocket.emit("driverLocation", driverLocation);
+  });
+
+  socket.on("passengerRequest", () => {
+    console.log("Someone wants a passenger!");
     taxiSocket = socket;
-    // socket.emit("driver coming");
-    // console.log("***********");
   });
 });
 
-// io.on("connection", (socket) => {
-//   console.log("client connected on websocket from server file");
-//   socket.on("longitude", (longitude) => {
-//     console.log("Longitude : ", longitude);
-//   });
-//   socket.on("latitude", (latitude) => {
-//     console.log("Longitude : ", latitude);
-//   });
-//   socket.on("i-am-connected", () => {
-//     console.log("I am Connected");
-//   });
-// });
-// setInterval(() => {
-//   io.emit("ping", { data: new Date() / 1 });
-// }, 1000);
 server.listen(PORT, () => {
   console.log("server started and listening on port " + PORT);
 });
