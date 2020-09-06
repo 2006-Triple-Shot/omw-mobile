@@ -7,21 +7,24 @@ const server = http.createServer(app);
 const io = socketIO(server);
 let taxiSocket = null;
 let routeResponse = null;
+let count = 0;
 
 io.on("connection", (socket) => {
-  console.log("connection recieved on server");
+  count++;
+  console.log("connection recieved on server", count);
 
   socket.on("taxiRequest", (routeResponse) => {
-    console.log("BACKEND-TAXIREQUEST : ", routeResponse);
+    console.log("BACKEND-TAXIREQUEST-cooords: ", routeResponse);
     if (taxiSocket !== null) {
       socket.emit("taxiRequest", routeResponse);
     }
   });
+
   socket.on("lookingForPassengers", () => {
     console.log("Someone is looking for a passenger");
     taxiSocket = socket;
-    socket.emit("driver coming");
-    console.log("***********");
+    // socket.emit("driver coming");
+    // console.log("***********");
   });
 });
 

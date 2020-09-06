@@ -3,7 +3,7 @@ import { StyleSheet, View, Image, ActivityIndicator } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import BottomButton from "./BottomButton";
 import { apiKey } from "./google-api";
-import PolyLine from "@mapbox/polyline";
+import polyline from "@mapbox/polyline";
 import socketIO from "socket.io-client";
 
 export default class Driver extends Component {
@@ -39,8 +39,8 @@ export default class Driver extends Component {
         `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}&destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
       const json = await response.json();
-      console.log(json);
-      const points = PolyLine.decode(json.routes[0].overview_polyline.points);
+      // console.log(json);
+      const points = polyline.decode(json.routes[0].overview_polyline.points);
       const pointCoords = points.map((point) => {
         return { latitude: point[0], longitude: point[1] };
       });
@@ -57,26 +57,26 @@ export default class Driver extends Component {
   }
 
   findPassengers() {
-    if (!this.state.lookingForPassengers) {
-      this.setState({ lookingForPassengers: true });
+    // if (!this.state.lookingForPassengers) {
+    this.setState({ lookingForPassengers: true });
+    // console.log(this.state.lookingForPassengers);
+    const socket = socketIO.connect("http://192.168.0.152:5000");
 
-      console.log(this.state.lookingForPassengers);
+    socket.on("connection", () => {
+      socket.emit("lookingForPassengers");
+      console.log("driver seeking passengers");
+    });
 
-      const socket = socketIO.connect("http://192.168.0.152:5000");
-      socket.on("connect", () => {
-        socket.emit("passengerRequest");
-      });
-
-      socket.on("taxiRequest", (routeResponse) => {
-        console.log(routeResponse);
-        this.setState({
-          lookingForPassengers: false,
-          passengerFound: true,
-          routeResponse,
-        });
-        this.getRouteDirections(routeResponse.geocoded_waypoints[0].place_id);
-      });
-    }
+    // socket.on("taxiRequest", (routeResponse) => {
+    //   console.log("driver receiving  taxi request");
+    // this.setState({
+    //   lookingForPassengers: false,
+    //   passengerFound: true,
+    //   routeResponse,
+    // });
+    // this.getRouteDirections(routeResponse.geocoded_waypoints[0].place_id);
+    // });
+    // }
   }
 
   render() {
