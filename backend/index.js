@@ -6,25 +6,29 @@ const PORT = process.env.PORT || 5000;
 
 let taxiSocket = null;
 let passengerSocket = null;
-
+let count = 0;
 io.on("connection", (socket) => {
-  console.log("a user connected :D");
-  socket.on("taxiRequest", (taxiRoute) => {
+  count++;
+  console.log("-----Backend connected----", count);
+
+  socket.on("taxiRequest", (passengerlocation) => {
     passengerSocket = socket;
-    console.log("Someone wants a taxi!");
+    console.log("Someone wants a taxi at ", passengerlocation);
     if (taxiSocket !== null) {
-      taxiSocket.emit("taxiRequest", taxiRoute);
+      taxiSocket.emit("taxiRequest", passengerlocation);
     }
   });
 
   socket.on("driverLocation", (driverLocation) => {
-    console.log(driverLocation);
-    passengerSocket.emit("driverLocation", driverLocation);
+    console.log("DRiver location Backend>>>", driverLocation);
+    socket.emit("driverLocation", driverLocation);
   });
 
-  socket.on("passengerRequest", () => {
-    console.log("Someone wants a passenger!");
+  socket.on("passengerRequest", (driverlocation) => {
     taxiSocket = socket;
+    console.log("Someone wants a passenger at", driverlocation);
+    console.log("taxiSocket");
+    console.log("passengerSocket");
   });
 });
 

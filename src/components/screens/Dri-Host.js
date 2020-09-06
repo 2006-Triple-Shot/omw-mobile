@@ -14,31 +14,33 @@ import { apiKey } from "./google-api";
 import polyline from "@mapbox/polyline";
 import socketIO from "socket.io-client";
 import * as Location from "expo-location";
-import { isNull } from "lodash";
 // import * as TaskManager from "expo-task-manager";
-import BackgroundGeolocation from "react-native-mauron85-background-geolocation";
-
+// import BackgroundGeolocation from "react-native-mauron85-background-geolocation";
+const socket = socketIO.connect("http://192.168.0.152:5000");
 export default class Driver extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      latitude: 0,
-      longitude: 0,
-      destination: "",
-      predictions: [],
+      latitude: null,
+      longitude: null,
       pointCoords: [],
+      destination: "",
+      routeResponse: {},
+      passengerlocation: {},
       lookingForPassengers: false,
-      buttonText: "Look for Passengers",
     };
     this.acceptPassengerRequest = this.acceptPassengerRequest.bind(this);
     this.findPassengers = this.findPassengers.bind(this);
     this.socket = null;
+    this.getRouteDirections = this.getRouteDirections.bind(this);
   }
+
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchId);
   }
+
   componentDidMount() {
-    this.watchId = navigator.geolocation.watchPosition(
+    this.watchId = navigator.geolocation.getCurrentPosition(
       (position) => {
         this.setState({
           latitude: position.coords.latitude,
@@ -50,14 +52,14 @@ export default class Driver extends Component {
     );
     // Location.startLocationUpdatesAsync(taskName, options);
   }
-
-  async getRouteDirections(destinationPlaceId) {
+  async getRouteDirections(destinationPlaceId, destinationName) {
     try {
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}&destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
+      // console.log(response);
       const json = await response.json();
-
+      // console.log(json);
       const points = polyline.decode(json.routes[0].overview_polyline.points);
       const pointCoords = points.map((point) => {
         return { latitude: point[0], longitude: point[1] };
@@ -66,9 +68,8 @@ export default class Driver extends Component {
         pointCoords,
         routeResponse: json,
       });
-      this.map.fitToCoordinates(pointCoords, {
-        edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
-      });
+      Keyboard.dismiss();
+      return destinationName;
     } catch (error) {
       console.error(error);
     }
@@ -80,27 +81,30 @@ export default class Driver extends Component {
     if (!this.state.lookingForPassengers) {
       this.setState({ lookingForPassengers: true });
 
-      this.socket = socketIO.connect("http://192.168.0.152:5000");
-
-      this.socket.on("connection", () => {
-        this.socket.emit("passesngerRequest");
+      socket.on("connection");
+      socket.emit("passengerRequest", {
+        latitude: this.state.latitude,
+        longitude: this.state.longitude,
       });
 
-      this.socket.on("taxiRequest", (routeResponse) => {
-        console.log(routeResponse);
+      socket.on("taxiRequest", (passengerlocation) => {
+        this.state.pointCoords = [...this.state.pointCoords, passengerlocation];
+        this.map.fitToCoordinates(this.state.pointCoords, {
+          edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
+        });
         this.setState({
           lookingForPassengers: false,
           passengerFound: true,
-          routeResponse,
+          passengerlocation,
         });
-        this.getRouteDirections(routeResponse.geocoded_waypoints[0].place_id);
       });
     }
   }
   acceptPassengerRequest() {
-    const passengerLocation = this.state.pointCoords[
-      this.state.pointCoords.length - 1
-    ];
+    socket.emit("driverLocation", {
+      latitude: this.state.latitude,
+      longitude: this.state.longitude,
+    });
   }
 
   render() {
@@ -166,10 +170,8 @@ export default class Driver extends Component {
           {startMarker}
         </MapView>
         <BottomButton
-          onPressFunction={() => {
-            this.findPassengers();
-          }}
-          buttonText={this.state.buttonText}
+          onPressFunction={bottomButtonFunction}
+          buttonText={passengerSearchText}
         >
           {findingPassengerActIndicator}
         </BottomButton>

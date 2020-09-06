@@ -17,11 +17,15 @@ export default class App extends Component {
     Location.requestPermissionsAsync();
   }
   render() {
-    return this.state.isDriver ? (
-      <Driver />
-    ) : this.state.isPassenger ? (
-      <Passenger />
-    ) : (
+    if (this.state.isDriver) {
+      return <Driver />;
+    }
+
+    if (this.state.isPassenger) {
+      return <Passenger />;
+    }
+
+    return (
       <SafeAreaView style={styles.container}>
         <View style={styles.separator}>
           <Button
