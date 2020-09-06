@@ -94,7 +94,7 @@ export default class Passenger extends Component {
   requestDriver() {
     console.log("where is the problem????");
 
-    const socket = socketIO.connect("http://192.168.0.153:5000");
+    const socket = socketIO.connect("http://192.168.0.152:5000");
     socket.on("connection", () => {
       console.log("Passenger  connected");
     });

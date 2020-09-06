@@ -19,7 +19,7 @@ io.on("connection", (socket) => {
   });
   socket.on("lookingForPassengers", () => {
     console.log("Someone is looking for a passenger");
-    taxiSocket = true;
+    taxiSocket = socket;
     socket.emit("driver coming");
     console.log("***********");
   });

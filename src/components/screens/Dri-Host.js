@@ -19,10 +19,9 @@ export default class Driver extends Component {
       latitude: null,
       longitude: null,
       error: "",
-      destination: "",
-      predictions: [],
       pointCoords: [],
       lookingForPassengers: false,
+      bottomButtonText: "findPassenger",
     };
   }
 
@@ -40,7 +39,7 @@ export default class Driver extends Component {
     );
   }
 
-  async getRouteDirections(destinationPlaceId, destinationName) {
+  async getRouteDirections(destinationPlaceId) {
     try {
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}
@@ -54,7 +53,7 @@ export default class Driver extends Component {
       });
       this.setState({
         pointCoords,
-        destination: destinationName,
+        destination: [],
       });
 
       this.map.fitToCoordinates(pointCoords, {
@@ -68,19 +67,19 @@ export default class Driver extends Component {
     if (!this.state.lookingForPassengers) {
       this.setState({ lookingForPassengers: true });
 
-      const socket = socketIO.connect("http://192.168.0.153:5000");
+      const socket = socketIO.connect("http://192.168.0.152:5000");
       socket.on("connection", () => {
         console.log("driver listening");
       });
       socket.emit("lookingForPassengers");
       socket.on("taxiRequest", (routeResponse) => {
         console.log(routeResponse);
+        this.getRouteDirections(routeResponse.getcoded_waypoints[0].place_id);
         this.setState({
           lookingForPassengers: false,
-          passengerFound: true,
+          bottomButtonText: "passengerFound",
           routeResponse,
         });
-        this.getRouteDirections(routeResponse.getcoded_waypoints[0].place_id);
       });
     }
   }
@@ -123,7 +122,9 @@ export default class Driver extends Component {
           onPress={() => this.lookForPassengers()}
         >
           <View>
-            <Text style={styles.bottomButtonText}>Find Passengers</Text>
+            <Text style={styles.bottomButtonText}>
+              {this.state.bottomButtonText}
+            </Text>
             {this.state.lookingForPassengers === true ? (
               <ActivityIndicator
                 animation={this.state.lookingForPassengers}
