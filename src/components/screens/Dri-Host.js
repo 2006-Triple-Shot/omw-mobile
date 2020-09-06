@@ -1,61 +1,53 @@
 import React, { Component } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import { StyleSheet, View, Image, ActivityIndicator } from "react-native";
+import MapView, { Polyline, Marker } from "react-native-maps";
+import BottomButton from "./BottomButton";
 import { apiKey } from "./google-api";
-import Location from "expo-location";
-import polyline from "@mapbox/polyline";
+import PolyLine from "@mapbox/polyline";
 import socketIO from "socket.io-client";
 
 export default class Driver extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      latitude: null,
-      longitude: null,
-      error: "",
+      latitude: 0,
+      longitude: 0,
+      destination: "",
+      predictions: [],
       pointCoords: [],
       lookingForPassengers: false,
-      bottomButtonText: "findPassenger",
     };
   }
 
   componentDidMount() {
-    // Location.requestPermissionsAsync();
-    this.watchId = navigator.geolocation.watchPosition(
+    //Get current location and set initial region to this
+    navigator.geolocation.getCurrentPosition(
       (position) => {
         this.setState({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
       },
-      (error) => this.setState({ error: error.message }),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
+      (error) => console.error(error),
+      { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
     );
   }
 
   async getRouteDirections(destinationPlaceId) {
     try {
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}
-        &destination=place_id:${destinationPlaceId}&key=${apiKey}`
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}&destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
       const json = await response.json();
-      console.log("json :", json);
-      const points = polyline.decode(json.routes[0].overview_polyline.points);
+      console.log(json);
+      const points = PolyLine.decode(json.routes[0].overview_polyline.points);
       const pointCoords = points.map((point) => {
         return { latitude: point[0], longitude: point[1] };
       });
       this.setState({
         pointCoords,
-        destination: [],
+        routeResponse: json,
       });
-
       this.map.fitToCoordinates(pointCoords, {
         edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
       });
@@ -63,35 +55,60 @@ export default class Driver extends Component {
       console.error(error);
     }
   }
-  lookForPassengers() {
+
+  findPassengers() {
     if (!this.state.lookingForPassengers) {
       this.setState({ lookingForPassengers: true });
 
+      console.log(this.state.lookingForPassengers);
+
       const socket = socketIO.connect("http://192.168.0.152:5000");
-      socket.on("connection", () => {
-        console.log("driver listening");
+      socket.on("connect", () => {
+        socket.emit("passengerRequest");
       });
-      socket.emit("lookingForPassengers");
+
       socket.on("taxiRequest", (routeResponse) => {
         console.log(routeResponse);
-        this.getRouteDirections(routeResponse.getcoded_waypoints[0].place_id);
         this.setState({
           lookingForPassengers: false,
-          bottomButtonText: "passengerFound",
+          passengerFound: true,
           routeResponse,
         });
+        this.getRouteDirections(routeResponse.geocoded_waypoints[0].place_id);
       });
     }
   }
 
   render() {
-    let marker = null;
-    if (this.state.latitude === null) return null;
+    let endMarker = null;
+    let startMarker = null;
+    let findingPassengerActIndicator = null;
+    let passengerSearchText = "FIND PASSENGERS 👥";
+
+    if (this.state.lookingForPassengers) {
+      passengerSearchText = "FINDING PASSENGERS...";
+      findingPassengerActIndicator = (
+        <ActivityIndicator
+          size="large"
+          animating={this.state.lookingForPassengers}
+        />
+      );
+    }
+
+    if (this.state.passengerFound) {
+      passengerSearchText = "FOUND PASSENGER! ACCEPT RIDE?";
+    }
+
     if (this.state.pointCoords.length > 1) {
-      marker = (
+      endMarker = (
         <Marker
           coordinate={this.state.pointCoords[this.state.pointCoords.length - 1]}
-        />
+        >
+          <Image
+            style={{ width: 40, height: 40 }}
+            source={require("../images/person-marker.png")}
+          />
+        </Marker>
       );
     }
 
@@ -115,31 +132,24 @@ export default class Driver extends Component {
             strokeWidth={4}
             strokeColor="red"
           />
-          {marker}
+          {endMarker}
+          {startMarker}
         </MapView>
-        <TouchableOpacity
-          style={styles.bottomButton}
-          onPress={() => this.lookForPassengers()}
+        <BottomButton
+          onPressFunction={() => {
+            this.findPassengers();
+          }}
+          buttonText={passengerSearchText}
         >
-          <View>
-            <Text style={styles.bottomButtonText}>
-              {this.state.bottomButtonText}
-            </Text>
-            {this.state.lookingForPassengers === true ? (
-              <ActivityIndicator
-                animation={this.state.lookingForPassengers}
-                size="large"
-              />
-            ) : null}
-          </View>
-        </TouchableOpacity>
+          {findingPassengerActIndicator}
+        </BottomButton>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  bottomButton: {
+  findDriver: {
     backgroundColor: "black",
     marginTop: "auto",
     margin: 20,
@@ -148,9 +158,10 @@ const styles = StyleSheet.create({
     paddingRight: 30,
     alignSelf: "center",
   },
-  bottomButtonText: {
-    color: "white",
+  findDriverText: {
     fontSize: 20,
+    color: "white",
+    fontWeight: "600",
   },
   suggestions: {
     backgroundColor: "white",
@@ -164,10 +175,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderWidth: 0.5,
     marginTop: 50,
-    marginRight: 5,
     marginLeft: 5,
-    backgroundColor: "white",
+    marginRight: 5,
     padding: 5,
+    backgroundColor: "white",
   },
   container: {
     ...StyleSheet.absoluteFillObject,
