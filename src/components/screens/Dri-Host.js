@@ -1,19 +1,18 @@
 import React, { Component } from "react";
 import {
-  Platform,
   StyleSheet,
   Text,
   View,
-  TextInput,
-  TouchableHighlight,
-  Keyboard,
+  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { apiKey } from "./google-api";
-import _ from "lodash";
+import Location from "expo-location";
 import polyline from "@mapbox/polyline";
+import socketIO from "socket.io-client";
 
-export default class App extends Component {
+export default class Driver extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -23,30 +22,24 @@ export default class App extends Component {
       destination: "",
       predictions: [],
       pointCoords: [],
-      // locationPredictions: [],
+      lookingForPassengers: false,
     };
-    this.onChangeDestinationDebounced = _.debounce(
-      this.onChangeDestination,
-      1000
-    );
   }
 
   componentDidMount() {
+    // Location.requestPermissionsAsync();
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {
         this.setState({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
-        // this.getRouteDirections();
       },
       (error) => this.setState({ error: error.message }),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
     );
   }
-  // componentWillMount() {
-  //   navigator.geolocation.clearWatch(this.watchId);
-  // }
+
   async getRouteDirections(destinationPlaceId, destinationName) {
     try {
       const response = await fetch(
@@ -61,31 +54,37 @@ export default class App extends Component {
       });
       this.setState({
         pointCoords,
-        predictions: [],
         destination: destinationName,
       });
-      Keyboard.dismiss();
-      this.map.fitToCoordinates(pointCoords);
+
+      this.map.fitToCoordinates(pointCoords, {
+        edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
+      });
     } catch (error) {
       console.error(error);
     }
   }
+  lookForPassengers() {
+    if (!this.state.lookingForPassengers) {
+      this.setState({ lookingForPassengers: true });
 
-  async onChangeDestination(destination) {
-    this.setState({ destination });
-    const apiURL = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${apiKey}&input=${destination}&location=${this.state.latitude},${this.state.longitude}&radius=2000`;
-    console.log(apiURL);
-    try {
-      const result = await fetch(apiURL);
-      const json = await result.json();
-      console.log("json :", json);
-      this.setState({
-        predictions: json.predictions,
+      const socket = socketIO.connect("http://192.168.0.153:5000");
+      socket.on("connection", () => {
+        console.log("driver listening");
       });
-    } catch (err) {
-      console.error(err);
+      socket.emit("lookingForPassengers");
+      socket.on("taxiRequest", (routeResponse) => {
+        console.log(routeResponse);
+        this.setState({
+          lookingForPassengers: false,
+          passengerFound: true,
+          routeResponse,
+        });
+        this.getRouteDirections(routeResponse.getcoded_waypoints[0].place_id);
+      });
     }
   }
+
   render() {
     let marker = null;
     if (this.state.latitude === null) return null;
@@ -96,23 +95,7 @@ export default class App extends Component {
         />
       );
     }
-    const predictions = this.state.predictions.map((prediction) => (
-      <TouchableHighlight
-        key={prediction.id}
-        onPress={() =>
-          this.getRouteDirections(
-            prediction.place_id,
-            prediction.structured_formatting.main_text
-          )
-        }
-      >
-        <View>
-          <Text style={styles.suggestions}>
-            {prediction.structured_formatting.main_text}
-          </Text>
-        </View>
-      </TouchableHighlight>
-    ));
+
     return (
       <View style={styles.container}>
         <MapView
@@ -135,24 +118,39 @@ export default class App extends Component {
           />
           {marker}
         </MapView>
-        <TextInput
-          placeholder="Enter destination..."
-          style={styles.destinationInput}
-          value={this.state.destination}
-          clearButtonMode="always"
-          onChangeText={(destination) => {
-            console.log("button destination :", destination);
-            this.setState({ destination });
-            this.onChangeDestinationDebounced(destination);
-          }}
-        />
-        {predictions}
+        <TouchableOpacity
+          style={styles.bottomButton}
+          onPress={() => this.lookForPassengers()}
+        >
+          <View>
+            <Text style={styles.bottomButtonText}>Find Passengers</Text>
+            {this.state.lookingForPassengers === true ? (
+              <ActivityIndicator
+                animation={this.state.lookingForPassengers}
+                size="large"
+              />
+            ) : null}
+          </View>
+        </TouchableOpacity>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  bottomButton: {
+    backgroundColor: "black",
+    marginTop: "auto",
+    margin: 20,
+    padding: 15,
+    paddingLeft: 30,
+    paddingRight: 30,
+    alignSelf: "center",
+  },
+  bottomButtonText: {
+    color: "white",
+    fontSize: 20,
+  },
   suggestions: {
     backgroundColor: "white",
     padding: 5,

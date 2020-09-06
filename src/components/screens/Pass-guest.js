@@ -7,13 +7,15 @@ import {
   TextInput,
   TouchableHighlight,
   Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { apiKey } from "./google-api";
 import _ from "lodash";
 import polyline from "@mapbox/polyline";
-
-export default class App extends Component {
+import socketIO from "socket.io-client";
+import Location from "expo-location";
+export default class Passenger extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -23,6 +25,7 @@ export default class App extends Component {
       destination: "",
       predictions: [],
       pointCoords: [],
+      routeResponse: {},
       // locationPredictions: [],
     };
     this.onChangeDestinationDebounced = _.debounce(
@@ -32,6 +35,7 @@ export default class App extends Component {
   }
 
   componentDidMount() {
+    // Location.requestPermissionsAsync();
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {
         this.setState({
@@ -54,7 +58,7 @@ export default class App extends Component {
         &destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
       const json = await response.json();
-      console.log("json :", json);
+      // console.log("json :", json);
       const points = polyline.decode(json.routes[0].overview_polyline.points);
       const pointCoords = points.map((point) => {
         return { latitude: point[0], longitude: point[1] };
@@ -63,6 +67,7 @@ export default class App extends Component {
         pointCoords,
         predictions: [],
         destination: destinationName,
+        routeResponse: json,
       });
       Keyboard.dismiss();
       this.map.fitToCoordinates(pointCoords);
@@ -74,11 +79,11 @@ export default class App extends Component {
   async onChangeDestination(destination) {
     this.setState({ destination });
     const apiURL = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${apiKey}&input=${destination}&location=${this.state.latitude},${this.state.longitude}&radius=2000`;
-    console.log(apiURL);
+    // console.log(apiURL);
     try {
       const result = await fetch(apiURL);
       const json = await result.json();
-      console.log("json :", json);
+      // console.log("json :", json);
       this.setState({
         predictions: json.predictions,
       });
@@ -86,8 +91,23 @@ export default class App extends Component {
       console.error(err);
     }
   }
+  requestDriver() {
+    console.log("where is the problem????");
+
+    const socket = socketIO.connect("http://192.168.0.153:5000");
+    socket.on("connection", () => {
+      console.log("Passenger  connected");
+    });
+    socket.emit("taxiRequest", this.state.routeResponse);
+    socket.on("driver coming", () => {
+      console.log("driver coming");
+    });
+    // socket.emit("connection", socket);
+  }
+
   render() {
     let marker = null;
+    let driverButton = null;
     if (this.state.latitude === null) return null;
     if (this.state.pointCoords.length > 1) {
       marker = (
@@ -95,10 +115,21 @@ export default class App extends Component {
           coordinate={this.state.pointCoords[this.state.pointCoords.length - 1]}
         />
       );
+
+      driverButton = (
+        <TouchableOpacity
+          style={styles.bottomButton}
+          onPress={() => this.requestDriver()}
+        >
+          <View>
+            <Text style={styles.bottomButtonText}>Find Driver</Text>
+          </View>
+        </TouchableOpacity>
+      );
     }
-    const predictions = this.state.predictions.map((prediction) => (
+    const predictions = this.state.predictions.map((prediction, index) => (
       <TouchableHighlight
-        key={prediction.id}
+        key={index}
         onPress={() =>
           this.getRouteDirections(
             prediction.place_id,
@@ -141,18 +172,32 @@ export default class App extends Component {
           value={this.state.destination}
           clearButtonMode="always"
           onChangeText={(destination) => {
-            console.log("button destination :", destination);
+            // console.log("button destination :", destination);
             this.setState({ destination });
             this.onChangeDestinationDebounced(destination);
           }}
         />
         {predictions}
+        {driverButton}
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  bottomButton: {
+    backgroundColor: "black",
+    marginTop: "auto",
+    margin: 20,
+    padding: 15,
+    paddingLeft: 30,
+    paddingRight: 30,
+    alignSelf: "center",
+  },
+  bottomButtonText: {
+    color: "white",
+    fontSize: 20,
+  },
   suggestions: {
     backgroundColor: "white",
     padding: 5,

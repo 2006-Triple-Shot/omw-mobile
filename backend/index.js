@@ -5,12 +5,23 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+let taxiSocket = null;
+let routeResponse = null;
 
 io.on("connection", (socket) => {
-  console.log("client connected backend");
-  socket.on("chat message", (msg) => {
-    console.log("msg : ", longitude);
-    io.emit("chat message", msg);
+  console.log("connection recieved on server");
+
+  socket.on("taxiRequest", (routeResponse) => {
+    console.log("BACKEND-TAXIREQUEST : ", routeResponse);
+    if (taxiSocket !== null) {
+      socket.emit("taxiRequest", routeResponse);
+    }
+  });
+  socket.on("lookingForPassengers", () => {
+    console.log("Someone is looking for a passenger");
+    taxiSocket = true;
+    socket.emit("driver coming");
+    console.log("***********");
   });
 });
 
