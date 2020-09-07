@@ -7,6 +7,7 @@ import {
   TouchableHighlight,
   Keyboard,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { apiKey } from "./google-api";
@@ -15,6 +16,23 @@ import socketIO from "socket.io-client";
 import BottomButton from "./BottomButton";
 import polyline from "@mapbox/polyline";
 
+import * as TaskManager from "expo-task-manager";
+import * as Location from "expo-location";
+const LOCATION_TASK_NAME = "background-location-task";
+
+TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+  if (error) {
+    console.error(error);
+    return;
+  }
+  if (data) {
+    const { locations } = data;
+    console.log(locations);
+    console.log(new Date().toGMTString());
+  }
+});
+
+////////////////////////////////////////////
 export default class Passenger extends Component {
   constructor(props) {
     super(props);
@@ -51,6 +69,16 @@ export default class Passenger extends Component {
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
     );
   }
+  onPress = async () => {
+    const { status } = await Location.requestPermissionsAsync();
+    if (status === "granted") {
+      await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+        accuracy: Location.Accuracy.lowest,
+        distanceInterval: 0,
+        timeInterval: 100,
+      });
+    }
+  };
 
   async getRouteDirections(destinationPlaceId, destinationName) {
     try {
@@ -110,7 +138,7 @@ export default class Passenger extends Component {
         driverIsOnTheWay: true,
         driverLocation,
       });
-      this.onChangeDestinationDebounced(driverLocation);
+      // this.onChangeDestinationDebounced(driverLocation);
     });
   }
 
@@ -119,7 +147,8 @@ export default class Passenger extends Component {
     let getDriver = null;
     let findingDriverActIndicator = null;
     let driverMarker = null;
-    if (!this.state.latitude) return null;
+
+    // if (!this.state.latitude) return null;
     if (this.state.driverIsOnTheWay) {
       driverMarker = (
         <Marker
@@ -185,6 +214,9 @@ export default class Passenger extends Component {
 
     return (
       <View style={styles.container}>
+        <TouchableOpacity onPress={this.onPress}>
+          <Text>Enable background location</Text>
+        </TouchableOpacity>
         <MapView
           key={this.getRandomInt()}
           ref={(map) => {

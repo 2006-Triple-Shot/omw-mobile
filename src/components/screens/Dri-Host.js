@@ -96,7 +96,7 @@ export default class Driver extends Component {
           routeResponse,
         });
         await this.getRouteDirections(
-          this.state.routeResponse.geocoded_waypoints[0].place_id
+          routeResponse.geocoded_waypoints[0].place_id
         );
         this.map.fitToCoordinates(this.props.pointCoords, {
           edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
