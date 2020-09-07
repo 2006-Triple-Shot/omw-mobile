@@ -67,7 +67,7 @@ export default class Passenger extends Component {
           longitude: position.coords.longitude,
         });
       },
-      (error) => console.log(error),
+      // (error) => console.log(error),
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
     );
   }
@@ -131,14 +131,17 @@ export default class Passenger extends Component {
     socket.on("connection");
     socket.emit("taxiRequest", this.state.routeResponse);
     socket.on("accepted", (driverLocation) => {
+      console.log("++++++------++++++++");
+      const pointCoords = [...this.state.pointCoords, driverLocation];
+
+      this.map.fitToCoordinates(pointCoords, {
+        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      });
       this.setState({
         lookingForDriver: false,
         driverIsOnTheWay: true,
         driverLocation,
-      });
-      this.state.pointCoords = [...this.state.pointCoords, driverLocation];
-      this.map.fitToCoordinates(pointCoords, {
-        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+        pointCoords,
       });
 
       // this.onChangeDestinationDebounced(driverLocation);

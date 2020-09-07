@@ -89,7 +89,7 @@ export default class Driver extends Component {
       });
 
       socket.on("taxiRequest", async (routeResponse) => {
-        console.log(routeResponse);
+        // console.log(routeResponse);
         this.setState({
           passengerFound: true,
           routeResponse,
