@@ -20,7 +20,7 @@ io.on("connection", (socket) => {
 
   socket.on("taxiRequest", (routeToPassenger) => {
     passengerSocket = socket;
-    console.log("Passenger wants a taxi at ", routeToPassenger);
+    console.log("Passenger wants a taxi at ");
     if (taxiSocket !== null) {
       taxiSocket.emit("taxiRequest", routeToPassenger);
       console.log("=======================");
@@ -29,7 +29,16 @@ io.on("connection", (socket) => {
 
   socket.on("accepted", (driverLocation) => {
     console.log("<<<<<<<<<<DRiver location Backend>>>>>>>", driverLocation);
-    socket.emit("driverLocation", driverLocation);
+    if (passengerSocket !== null) {
+      passengerSocket.emit("accepted", driverLocation);
+    }
+  });
+
+  socket.on("driverTracking", (driverLocation) => {
+    console.log("<<<<<<<<<<BACKGROUND DRIVER TRACKING >>>>>>>", driverLocation);
+    if (passengerSocket !== null) {
+      passengerSocket.emit("driverTracking", driverLocation);
+    }
   });
 });
 

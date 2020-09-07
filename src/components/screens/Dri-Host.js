@@ -13,16 +13,37 @@ import BottomButton from "./BottomButton";
 import { apiKey } from "./google-api";
 import polyline from "@mapbox/polyline";
 import socketIO from "socket.io-client";
+import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
-// import * as TaskManager from "expo-task-manager";
-// import BackgroundGeolocation from "react-native-mauron85-background-geolocation";
+const LOCATION_TASK_NAME = "background-location-task";
 const socket = socketIO.connect("http://192.168.0.152:5000");
+
+TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+  let count = 1;
+  if (error) {
+    console.log(error);
+    return;
+  }
+  if (data) {
+    const { locations } = data;
+
+    // setInterval(() => {
+    count++;
+    socket.emit("driverTracking", {
+      latitude: locations[0].coords.latitude,
+      longitude: locations[0].coords.longitude,
+    });
+    console.log(count);
+    // }, 500000);
+  }
+});
+
 export default class Driver extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      latitude: 0,
-      longitude: 0,
+      latitude: null,
+      longitude: null,
       pointCoords: [],
       destination: "",
       routeResponse: {},
@@ -39,7 +60,11 @@ export default class Driver extends Component {
   }
 
   componentDidMount() {
-    this.watchId = navigator.geolocation.getCurrentPosition(
+    Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+      accuracy: 4,
+      distanceInterval: 300,
+    });
+    this.watchId = navigator.geolocation.watchPosition(
       (position) => {
         this.setState({
           latitude: position.coords.latitude,
@@ -70,7 +95,7 @@ export default class Driver extends Component {
 
       return;
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   }
 
@@ -89,14 +114,13 @@ export default class Driver extends Component {
       });
 
       socket.on("taxiRequest", async (routeResponse) => {
-        console.log(routeResponse);
+        // console.log(routeResponse);
         this.setState({
-          lookingForPassengers: false,
           passengerFound: true,
           routeResponse,
         });
         await this.getRouteDirections(
-          this.state.routeResponse.geocoded_waypoints[0].place_id
+          routeResponse.geocoded_waypoints[0].place_id
         );
         this.map.fitToCoordinates(this.props.pointCoords, {
           edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
@@ -104,16 +128,28 @@ export default class Driver extends Component {
       });
     }
   }
+  // onPress = async () => {
+  //   const { status } = await Location.requestPermissionsAsync();
+  //   if (status === "granted") {
+  //     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+  //       accuracy: Location.Accuracy.Balanced,
+  //       // distanceInterval: 0,
+  //       // timeInterval: 100,
+  //     });
+  //   }
+  // };
 
-  acceptPassengerRequest() {
-    // const passengerLocation = this.state.pointCoords[this.pointCoords.length - 1];
-
-    //Send driver location to passenger
+  acceptPassengerRequest = async () => {
     socket.emit("accepted", {
       latitude: this.state.latitude,
       longitude: this.state.longitude,
     });
-  }
+
+    this.setState({
+      lookingForPassengers: false,
+      passengerFound: true,
+    });
+  };
 
   render() {
     let endMarker = null;
@@ -121,7 +157,7 @@ export default class Driver extends Component {
     let findingPassengerActIndicator = null;
     let passengerSearchText = "FIND PASSENGERS 👥";
     let bottomButtonFunction = this.findPassengers;
-
+    if (!this.state.latitude) return null;
     if (this.state.lookingForPassengers) {
       passengerSearchText = "FINDING PASSENGERS...";
       findingPassengerActIndicator = (
