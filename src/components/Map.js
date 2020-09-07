@@ -43,10 +43,10 @@ export default function App(props) {
   findCurrentLocation = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log("position:", position);
+        // console.log("position:", position);
         // const latitude = JSON.stringify(position.coords.latitude);
         // const longitude = JSON.stringify(position.coords.longitude);
-        console.log("Longitude :", position.coords.longitude);
+        // console.log("Longitude :", position.coords.longitude);
         setLocation(position);
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
@@ -55,7 +55,7 @@ export default function App(props) {
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
     // Update the document title using the browser API
-    console.log("in useffect");
+    // console.log("in useffect");
     findCurrentLocation();
   }, []);
   async function getLocation() {}

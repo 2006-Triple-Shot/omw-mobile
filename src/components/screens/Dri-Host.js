@@ -1,104 +1,161 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
-  TouchableOpacity,
+  Image,
   ActivityIndicator,
+  Linking,
+  Platform,
+  Alert,
 } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import MapView, { Polyline, Marker } from "react-native-maps";
+import BottomButton from "./BottomButton";
 import { apiKey } from "./google-api";
-import Location from "expo-location";
 import polyline from "@mapbox/polyline";
 import socketIO from "socket.io-client";
-
+import * as Location from "expo-location";
+// import * as TaskManager from "expo-task-manager";
+// import BackgroundGeolocation from "react-native-mauron85-background-geolocation";
+const socket = socketIO.connect("http://192.168.0.152:5000");
 export default class Driver extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      latitude: null,
-      longitude: null,
-      error: "",
-      destination: "",
-      predictions: [],
+      latitude: 0,
+      longitude: 0,
       pointCoords: [],
+      destination: "",
+      routeResponse: {},
       lookingForPassengers: false,
     };
+    this.acceptPassengerRequest = this.acceptPassengerRequest.bind(this);
+    this.findPassengers = this.findPassengers.bind(this);
+
+    this.getRouteDirections = this.getRouteDirections.bind(this);
+  }
+
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.watchId);
   }
 
   componentDidMount() {
-    // Location.requestPermissionsAsync();
-    this.watchId = navigator.geolocation.watchPosition(
+    this.watchId = navigator.geolocation.getCurrentPosition(
       (position) => {
         this.setState({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
       },
-      (error) => this.setState({ error: error.message }),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
+      (error) => console.log(error),
+      { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
     );
   }
 
-  async getRouteDirections(destinationPlaceId, destinationName) {
+  async getRouteDirections(destinationPlaceId) {
     try {
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}
-        &destination=place_id:${destinationPlaceId}&key=${apiKey}`
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}&destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
+      // console.log(response);
       const json = await response.json();
-      console.log("json :", json);
+      // console.log(json);
       const points = polyline.decode(json.routes[0].overview_polyline.points);
       const pointCoords = points.map((point) => {
         return { latitude: point[0], longitude: point[1] };
       });
       this.setState({
         pointCoords,
-        destination: destinationName,
+        routeResponse: json,
       });
 
-      this.map.fitToCoordinates(pointCoords, {
-        edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
-      });
+      return;
     } catch (error) {
       console.error(error);
     }
   }
-  lookForPassengers() {
+
+  getRandomInt() {
+    return Math.floor(Math.random() * Math.floor(1000));
+  }
+
+  findPassengers() {
     if (!this.state.lookingForPassengers) {
       this.setState({ lookingForPassengers: true });
 
-      const socket = socketIO.connect("http://192.168.0.153:5000");
-      socket.on("connection", () => {
-        console.log("driver listening");
+      socket.on("connection");
+      socket.emit("passengerRequest", {
+        latitude: this.state.latitude,
+        longitude: this.state.longitude,
       });
-      socket.emit("lookingForPassengers");
-      socket.on("taxiRequest", (routeResponse) => {
+
+      socket.on("taxiRequest", async (routeResponse) => {
         console.log(routeResponse);
         this.setState({
           lookingForPassengers: false,
           passengerFound: true,
           routeResponse,
         });
-        this.getRouteDirections(routeResponse.getcoded_waypoints[0].place_id);
+        await this.getRouteDirections(
+          this.state.routeResponse.geocoded_waypoints[0].place_id
+        );
+        this.map.fitToCoordinates(this.props.pointCoords, {
+          edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
+        });
       });
     }
   }
 
+  acceptPassengerRequest() {
+    // const passengerLocation = this.state.pointCoords[this.pointCoords.length - 1];
+
+    //Send driver location to passenger
+    socket.emit("accepted", {
+      latitude: this.state.latitude,
+      longitude: this.state.longitude,
+    });
+  }
+
   render() {
-    let marker = null;
-    if (this.state.latitude === null) return null;
-    if (this.state.pointCoords.length > 1) {
-      marker = (
-        <Marker
-          coordinate={this.state.pointCoords[this.state.pointCoords.length - 1]}
+    let endMarker = null;
+    let startMarker = null;
+    let findingPassengerActIndicator = null;
+    let passengerSearchText = "FIND PASSENGERS 👥";
+    let bottomButtonFunction = this.findPassengers;
+
+    if (this.state.lookingForPassengers) {
+      passengerSearchText = "FINDING PASSENGERS...";
+      findingPassengerActIndicator = (
+        <ActivityIndicator
+          key={this.getRandomInt()}
+          size="large"
+          animating={this.state.lookingForPassengers}
         />
+      );
+    }
+
+    if (this.state.passengerFound) {
+      passengerSearchText = "FOUND PASSENGER! ACCEPT RIDE?";
+      bottomButtonFunction = this.acceptPassengerRequest;
+    }
+
+    if (this.state.pointCoords.length > 1) {
+      endMarker = (
+        <Marker
+          key={this.getRandomInt()}
+          coordinate={this.state.pointCoords[this.state.pointCoords.length - 1]}
+        >
+          <Image
+            style={{ width: 40, height: 40 }}
+            source={require("../images/person-marker.png")}
+          />
+        </Marker>
       );
     }
 
     return (
       <View style={styles.container}>
         <MapView
+          key={this.getRandomInt()}
           ref={(map) => {
             this.map = map;
           }}
@@ -116,29 +173,22 @@ export default class Driver extends Component {
             strokeWidth={4}
             strokeColor="red"
           />
-          {marker}
+          {endMarker}
+          {startMarker}
         </MapView>
-        <TouchableOpacity
-          style={styles.bottomButton}
-          onPress={() => this.lookForPassengers()}
+        <BottomButton
+          onPressFunction={bottomButtonFunction}
+          buttonText={passengerSearchText}
         >
-          <View>
-            <Text style={styles.bottomButtonText}>Find Passengers</Text>
-            {this.state.lookingForPassengers === true ? (
-              <ActivityIndicator
-                animation={this.state.lookingForPassengers}
-                size="large"
-              />
-            ) : null}
-          </View>
-        </TouchableOpacity>
+          {findingPassengerActIndicator}
+        </BottomButton>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  bottomButton: {
+  findDriver: {
     backgroundColor: "black",
     marginTop: "auto",
     margin: 20,
@@ -147,9 +197,10 @@ const styles = StyleSheet.create({
     paddingRight: 30,
     alignSelf: "center",
   },
-  bottomButtonText: {
-    color: "white",
+  findDriverText: {
     fontSize: 20,
+    color: "white",
+    fontWeight: "600",
   },
   suggestions: {
     backgroundColor: "white",
@@ -163,10 +214,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderWidth: 0.5,
     marginTop: 50,
-    marginRight: 5,
     marginLeft: 5,
-    backgroundColor: "white",
+    marginRight: 5,
     padding: 5,
+    backgroundColor: "white",
   },
   container: {
     ...StyleSheet.absoluteFillObject,
