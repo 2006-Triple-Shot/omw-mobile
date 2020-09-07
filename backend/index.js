@@ -29,7 +29,16 @@ io.on("connection", (socket) => {
 
   socket.on("accepted", (driverLocation) => {
     console.log("<<<<<<<<<<DRiver location Backend>>>>>>>", driverLocation);
-    passengerSocket.emit("accepted", driverLocation);
+    if (passengerSocket !== null) {
+      passengerSocket.emit("accepted", driverLocation);
+    }
+  });
+
+  socket.on("driverTracking", (driverLocation) => {
+    console.log("<<<<<<<<<<BACKGROUND DRIVER TRACKING >>>>>>>", driverLocation);
+    if (passengerSocket !== null) {
+      passengerSocket.emit("driverTracking", driverLocation);
+    }
   });
 });
 

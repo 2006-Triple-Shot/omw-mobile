@@ -17,28 +17,12 @@ import socketIO from "socket.io-client";
 import BottomButton from "./BottomButton";
 import polyline from "@mapbox/polyline";
 
-// import * as TaskManager from "expo-task-manager";
-// import * as Location from "expo-location";
-// const LOCATION_TASK_NAME = "background-location-task";
-
-// TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
-//   if (error) {
-//     console.error(error);
-//     return;
-//   }
-//   if (data) {
-//     const { locations } = data;
-//     console.log(locations);
-//     console.log(new Date().toGMTString());
-//   }
-// });
-
 export default class Passenger extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      latitude: 0,
-      longitude: 0,
+      latitude: null,
+      longitude: null,
       pointCoords: [],
       destination: "",
       routeResponse: {},
@@ -60,36 +44,26 @@ export default class Passenger extends Component {
     navigator.geolocation.clearWatch(this.watchId);
   }
   componentDidMount() {
-    this.watchId = navigator.geolocation.getCurrentPosition(
+    this.watchId = navigator.geolocation.watchPosition(
       (position) => {
         this.setState({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
       },
-      // (error) => console.log(error),
+      (error) => console.log(error),
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
     );
   }
-  // onPress = async () => {
-  //   const { status } = await Location.requestPermissionsAsync();
-  //   if (status === "granted") {
-  //     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-  //       accuracy: Location.Accuracy.lowest,
-  //       distanceInterval: 0,
-  //       timeInterval: 100,
-  //     });
-  //   }
-  // };
 
   async getRouteDirections(destinationPlaceId, destinationName) {
     try {
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}&destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
-      // console.log(response);
+
       const json = await response.json();
-      // console.log(json);
+
       const points = polyline.decode(json.routes[0].overview_polyline.points);
       const pointCoords = points.map((point) => {
         return { latitude: point[0], longitude: point[1] };
@@ -116,7 +90,7 @@ export default class Passenger extends Component {
         predictions: json.predictions,
       });
     } catch (err) {
-      console.error(err);
+      console.log(err);
     }
   }
 
@@ -130,8 +104,23 @@ export default class Passenger extends Component {
 
     socket.on("connection");
     socket.emit("taxiRequest", this.state.routeResponse);
+
     socket.on("accepted", (driverLocation) => {
-      console.log("++++++------++++++++");
+      console.log("++++++ACCEPTED++++++++");
+      const pointCoords = [...this.state.pointCoords, driverLocation];
+
+      this.map.fitToCoordinates(pointCoords, {
+        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      });
+      this.setState({
+        lookingForDriver: false,
+        driverIsOnTheWay: true,
+        driverLocation,
+        pointCoords,
+      });
+    });
+
+    socket.on("driverTracking", (driverLocation) => {
       const pointCoords = [...this.state.pointCoords, driverLocation];
 
       this.map.fitToCoordinates(pointCoords, {
@@ -205,9 +194,9 @@ export default class Passenger extends Component {
             prediction.structured_formatting.main_text
           );
           this.setState({ predictions: [], destination: destinationName });
-          this.map.fitToCoordinates(this.state.pointCoords, {
-            edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
-          });
+          // this.map.fitToCoordinates(this.state.pointCoords, {
+          //   edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
+          // });
         }}
         key={this.getRandomInt()}
       >
@@ -221,9 +210,6 @@ export default class Passenger extends Component {
 
     return (
       <View style={styles.container}>
-        {/* <TouchableOpacity onPress={this.onPress}>
-          <Text>Enable background location</Text>
-        </TouchableOpacity> */}
         <MapView
           key={this.getRandomInt()}
           ref={(map) => {
@@ -257,6 +243,7 @@ export default class Passenger extends Component {
             this.onChangeDestinationDebounced(destination);
           }}
         />
+
         {predictions}
         {getDriver}
       </View>
