@@ -91,7 +91,6 @@ export default class Driver extends Component {
       socket.on("taxiRequest", async (routeResponse) => {
         console.log(routeResponse);
         this.setState({
-          lookingForPassengers: false,
           passengerFound: true,
           routeResponse,
         });
@@ -112,6 +111,10 @@ export default class Driver extends Component {
     socket.emit("accepted", {
       latitude: this.state.latitude,
       longitude: this.state.longitude,
+    });
+    this.setState({
+      lookingForPassengers: false,
+      passengerFound: true,
     });
   }
 

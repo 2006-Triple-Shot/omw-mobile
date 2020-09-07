@@ -29,7 +29,7 @@ io.on("connection", (socket) => {
 
   socket.on("accepted", (driverLocation) => {
     console.log("<<<<<<<<<<DRiver location Backend>>>>>>>", driverLocation);
-    socket.emit("driverLocation", driverLocation);
+    socket.emit("accepted", driverLocation);
   });
 });
 

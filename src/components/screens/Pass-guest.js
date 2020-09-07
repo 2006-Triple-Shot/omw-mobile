@@ -7,6 +7,7 @@ import {
   TouchableHighlight,
   Keyboard,
   ActivityIndicator,
+  Image,
   TouchableOpacity,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
@@ -16,23 +17,22 @@ import socketIO from "socket.io-client";
 import BottomButton from "./BottomButton";
 import polyline from "@mapbox/polyline";
 
-import * as TaskManager from "expo-task-manager";
-import * as Location from "expo-location";
-const LOCATION_TASK_NAME = "background-location-task";
+// import * as TaskManager from "expo-task-manager";
+// import * as Location from "expo-location";
+// const LOCATION_TASK_NAME = "background-location-task";
 
-TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
-  if (error) {
-    console.error(error);
-    return;
-  }
-  if (data) {
-    const { locations } = data;
-    console.log(locations);
-    console.log(new Date().toGMTString());
-  }
-});
+// TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+//   if (error) {
+//     console.error(error);
+//     return;
+//   }
+//   if (data) {
+//     const { locations } = data;
+//     console.log(locations);
+//     console.log(new Date().toGMTString());
+//   }
+// });
 
-////////////////////////////////////////////
 export default class Passenger extends Component {
   constructor(props) {
     super(props);
@@ -48,12 +48,14 @@ export default class Passenger extends Component {
       mylocation: {},
       driverLocation: {},
     };
+
     this.onChangeDestinationDebounced = _.debounce(
       this.onChangeDestination,
       1000
     );
     this.getRouteDirections = this.getRouteDirections.bind(this);
   }
+
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchId);
   }
@@ -69,16 +71,16 @@ export default class Passenger extends Component {
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
     );
   }
-  onPress = async () => {
-    const { status } = await Location.requestPermissionsAsync();
-    if (status === "granted") {
-      await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-        accuracy: Location.Accuracy.lowest,
-        distanceInterval: 0,
-        timeInterval: 100,
-      });
-    }
-  };
+  // onPress = async () => {
+  //   const { status } = await Location.requestPermissionsAsync();
+  //   if (status === "granted") {
+  //     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+  //       accuracy: Location.Accuracy.lowest,
+  //       distanceInterval: 0,
+  //       timeInterval: 100,
+  //     });
+  //   }
+  // };
 
   async getRouteDirections(destinationPlaceId, destinationName) {
     try {
@@ -128,16 +130,17 @@ export default class Passenger extends Component {
 
     socket.on("connection");
     socket.emit("taxiRequest", this.state.routeResponse);
-    socket.on("driverLocation", (driverLocation) => {
-      let pointCoords = [...this.state.pointCoords, driverLocation];
-      this.map.fitToCoordinates(pointCoords, {
-        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
-      });
+    socket.on("accepted", (driverLocation) => {
       this.setState({
         lookingForDriver: false,
         driverIsOnTheWay: true,
         driverLocation,
       });
+      this.state.pointCoords = [...this.state.pointCoords, driverLocation];
+      this.map.fitToCoordinates(pointCoords, {
+        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      });
+
       // this.onChangeDestinationDebounced(driverLocation);
     });
   }
@@ -148,7 +151,7 @@ export default class Passenger extends Component {
     let findingDriverActIndicator = null;
     let driverMarker = null;
 
-    // if (!this.state.latitude) return null;
+    if (!this.state.latitude) return null;
     if (this.state.driverIsOnTheWay) {
       driverMarker = (
         <Marker
@@ -171,7 +174,8 @@ export default class Passenger extends Component {
       );
     }
 
-    if (this.state.pointCoords.length > 1) {
+    if (this.state.pointCoords.length >= 1) {
+      //added =
       marker = (
         <Marker
           key={this.getRandomInt()}
@@ -214,9 +218,9 @@ export default class Passenger extends Component {
 
     return (
       <View style={styles.container}>
-        <TouchableOpacity onPress={this.onPress}>
+        {/* <TouchableOpacity onPress={this.onPress}>
           <Text>Enable background location</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <MapView
           key={this.getRandomInt()}
           ref={(map) => {
