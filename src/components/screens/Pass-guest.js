@@ -91,7 +91,7 @@ export default class Passenger extends Component {
   }
 
   getRandomInt() {
-    return Math.floor(Math.random() * Math.floor(10000));
+    return Math.floor(Math.random() * Math.floor(1000));
   }
   requestDriver() {
     this.setState({ lookingForDriver: true });
@@ -191,7 +191,7 @@ export default class Passenger extends Component {
             this.map = map;
           }}
           style={styles.map}
-          initialRregion={{
+          initialRegion={{
             latitude: this.state.latitude,
             longitude: this.state.longitude,
             latitudeDelta: 0.015,
