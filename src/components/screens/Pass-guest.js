@@ -174,16 +174,17 @@ export default class Passenger extends Component {
           coordinate={this.state.pointCoords[this.state.pointCoords.length - 1]}
         />
       );
-      getDriver = (
-        <BottomButton
-          key={this.getRandomInt()}
-          onPressFunction={() => this.requestDriver()}
-          buttonText="REQUEST 🚗"
-        >
-          {findingDriverActIndicator}
-        </BottomButton>
-      );
     }
+
+    getDriver = (
+      <BottomButton
+        key={this.getRandomInt()}
+        onPressFunction={() => this.requestDriver()}
+        buttonText="REQUEST 🚗"
+      >
+        {findingDriverActIndicator}
+      </BottomButton>
+    );
 
     const predictions = this.state.predictions.map((prediction, index) => (
       <TouchableHighlight
