@@ -19,8 +19,8 @@ export default class Passenger extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      latitude: null,
-      longitude: null,
+      latitude: 0,
+      longitude: 0,
       pointCoords: [],
       destination: "",
       routeResponse: {},
@@ -40,11 +40,7 @@ export default class Passenger extends Component {
     navigator.geolocation.clearWatch(this.watchId);
   }
   componentDidMount() {
-    watchId = this.getMylocation();
-    // Location.startLocationUpdatesAsync(taskName, options);
-  }
-  getMylocation = () => {
-    navigator.geolocation.getCurrentPosition(
+    this.watchId = navigator.geolocation.getCurrentPosition(
       (position) => {
         this.setState({
           latitude: position.coords.latitude,
@@ -54,7 +50,7 @@ export default class Passenger extends Component {
       (error) => console.log(error),
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
     );
-  };
+  }
 
   async getRouteDirections(destinationPlaceId, destinationName) {
     try {
@@ -103,10 +99,7 @@ export default class Passenger extends Component {
     const socket = socketIO.connect("http://192.168.0.152:5000");
 
     socket.on("connection");
-    socket.emit("taxiRequest", {
-      latitude: this.state.latitude,
-      longitude: this.state.longitude,
-    });
+    socket.emit("taxiRequest", this.state.routeResponse);
     socket.on("driverLocation", (driverLocation) => {
       let pointCoords = [...this.state.pointCoords, driverLocation];
       this.map.fitToCoordinates(pointCoords, {
@@ -117,6 +110,7 @@ export default class Passenger extends Component {
         driverIsOnTheWay: true,
         driverLocation,
       });
+      this.onChangeDestinationDebounced(driverLocation);
     });
   }
 

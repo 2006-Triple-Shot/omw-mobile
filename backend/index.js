@@ -11,24 +11,25 @@ io.on("connection", (socket) => {
   count++;
   console.log("-----Backend connected----", count);
 
-  socket.on("taxiRequest", (passengerlocation) => {
+  socket.on("passengerRequest", (driverlocation) => {
+    taxiSocket = socket;
+    console.log("Driver wants a passenger at", driverlocation);
+    console.log("taxiSocket");
+    console.log("*****************");
+  });
+
+  socket.on("taxiRequest", (routeToPassenger) => {
     passengerSocket = socket;
-    console.log("Someone wants a taxi at ", passengerlocation);
+    console.log("Passenger wants a taxi at ", routeToPassenger);
     if (taxiSocket !== null) {
-      taxiSocket.emit("taxiRequest", passengerlocation);
+      taxiSocket.emit("taxiRequest", routeToPassenger);
+      console.log("=======================");
     }
   });
 
-  socket.on("driverLocation", (driverLocation) => {
-    console.log("DRiver location Backend>>>", driverLocation);
+  socket.on("accepted", (driverLocation) => {
+    console.log("<<<<<<<<<<DRiver location Backend>>>>>>>", driverLocation);
     socket.emit("driverLocation", driverLocation);
-  });
-
-  socket.on("passengerRequest", (driverlocation) => {
-    taxiSocket = socket;
-    console.log("Someone wants a passenger at", driverlocation);
-    console.log("taxiSocket");
-    console.log("passengerSocket");
   });
 });
 

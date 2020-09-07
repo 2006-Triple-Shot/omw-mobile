@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { StyleSheet, Button, View, SafeAreaView } from "react-native";
 import Driver from "./src/components/screens/Dri-Host";
 import Passenger from "./src/components/screens/Pass-guest";
+import Guest from "./src/components/screens/Guests";
 import * as Location from "expo-location";
 import Constants from "expo-constants";
 

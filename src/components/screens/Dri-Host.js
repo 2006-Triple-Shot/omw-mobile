@@ -21,17 +21,16 @@ export default class Driver extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      latitude: null,
-      longitude: null,
+      latitude: 0,
+      longitude: 0,
       pointCoords: [],
       destination: "",
       routeResponse: {},
-      passengerlocation: {},
       lookingForPassengers: false,
     };
     this.acceptPassengerRequest = this.acceptPassengerRequest.bind(this);
     this.findPassengers = this.findPassengers.bind(this);
-    this.socket = null;
+
     this.getRouteDirections = this.getRouteDirections.bind(this);
   }
 
@@ -50,9 +49,9 @@ export default class Driver extends Component {
       (error) => console.log(error),
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
     );
-    // Location.startLocationUpdatesAsync(taskName, options);
   }
-  async getRouteDirections(destinationPlaceId, destinationName) {
+
+  async getRouteDirections(destinationPlaceId) {
     try {
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}&destination=place_id:${destinationPlaceId}&key=${apiKey}`
@@ -68,15 +67,17 @@ export default class Driver extends Component {
         pointCoords,
         routeResponse: json,
       });
-      Keyboard.dismiss();
-      return destinationName;
+
+      return;
     } catch (error) {
       console.error(error);
     }
   }
+
   getRandomInt() {
     return Math.floor(Math.random() * Math.floor(1000));
   }
+
   findPassengers() {
     if (!this.state.lookingForPassengers) {
       this.setState({ lookingForPassengers: true });
@@ -87,21 +88,28 @@ export default class Driver extends Component {
         longitude: this.state.longitude,
       });
 
-      socket.on("taxiRequest", (passengerlocation) => {
-        this.state.pointCoords = [...this.state.pointCoords, passengerlocation];
-        this.map.fitToCoordinates(this.state.pointCoords, {
-          edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
-        });
+      socket.on("taxiRequest", async (routeResponse) => {
+        console.log(routeResponse);
         this.setState({
           lookingForPassengers: false,
           passengerFound: true,
-          passengerlocation,
+          routeResponse,
+        });
+        await this.getRouteDirections(
+          this.state.routeResponse.geocoded_waypoints[0].place_id
+        );
+        this.map.fitToCoordinates(this.props.pointCoords, {
+          edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
         });
       });
     }
   }
+
   acceptPassengerRequest() {
-    socket.emit("driverLocation", {
+    // const passengerLocation = this.state.pointCoords[this.pointCoords.length - 1];
+
+    //Send driver location to passenger
+    socket.emit("accepted", {
       latitude: this.state.latitude,
       longitude: this.state.longitude,
     });
@@ -113,7 +121,6 @@ export default class Driver extends Component {
     let findingPassengerActIndicator = null;
     let passengerSearchText = "FIND PASSENGERS 👥";
     let bottomButtonFunction = this.findPassengers;
-    if (!this.state.latitude) return null;
 
     if (this.state.lookingForPassengers) {
       passengerSearchText = "FINDING PASSENGERS...";
