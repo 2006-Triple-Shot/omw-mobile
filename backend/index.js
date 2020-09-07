@@ -1,25 +1,26 @@
 const http = require("http");
 const express = require("express");
-const socketIO = require("socket.io");
-const PORT = process.env.PORT || 5000;
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = require("socket.io").listen(server);
+const PORT = process.env.PORT || 5000;
+
+let taxiSocket = null;
+
 io.on("connection", (socket) => {
-  console.log("client connected on websocket from server file");
-  socket.on("longitude", (longitude) => {
-    console.log("Longitude : ", longitude);
+  console.log("server connection");
+  socket.on("taxiRequest", (routeResponse) => {
+    console.log("looking for a taxi");
+    if (taxiSocket !== null) {
+      console.log("taxiSocket is a valid socket");
+      taxiSocket.emit("taxiRequest", routeResponse);
+    }
   });
-  socket.on("latitude", (latitude) => {
-    console.log("Longitude : ", latitude);
-  });
-  socket.on("i-am-connected", () => {
-    console.log("I am Connected");
+
+  socket.on("lookingForPassenger", () => {
+    console.log("Someone is looking for a passenger");
+    taxiSocket = socket;
   });
 });
-setInterval(() => {
-  io.emit("ping", { data: new Date() / 1 });
-}, 1000);
-server.listen(PORT, () => {
-  console.log("server started and listening on port " + PORT);
-});
+
+server.listen(PORT, () => console.log("server running on port", PORT));
