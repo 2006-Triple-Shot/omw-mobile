@@ -199,8 +199,8 @@ export default class Driver extends Component {
           region={{
             latitude: this.state.latitude,
             longitude: this.state.longitude,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.0121,
+            latitudeDelta: 0.12,
+            longitudeDelta: 0.12,
           }}
           showsUserLocation={true}
         >
