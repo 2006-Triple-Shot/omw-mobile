@@ -15,7 +15,6 @@ import _ from "lodash";
 import polyline from "@mapbox/polyline";
 import io from "socket.io-client";
 import Share from "../Share";
-export const socket = io("http://192.168.1.169:5000");
 
 export default class Passenger extends Component {
   constructor(props) {
@@ -34,7 +33,6 @@ export default class Passenger extends Component {
       this.onChangeDestination,
       1000
     );
-    this.socket = socket;
   }
 
   componentDidMount() {
@@ -54,7 +52,7 @@ export default class Passenger extends Component {
     try {
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}
-        &destination=place_id:${destinationPlaceId}&key=${apiKey}`
+            &destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
       const json = await response.json();
       // console.log("json :", json);
@@ -92,8 +90,9 @@ export default class Passenger extends Component {
   }
 
   requestDriver() {
-    console.log("looking for driver");
-    this.socket.on("connect", (message) => {
+    const socket = io("http://192.168.1.169:5000");
+    socket.on("connect", () => {
+      console.log("looking for driver");
       socket.emit("taxiRequest", this.state.routeResponse);
     });
   }
@@ -115,7 +114,7 @@ export default class Passenger extends Component {
           onPress={() => this.requestDriver()}
         >
           <View>
-            <Text style={styles.bottomButtonText}>Find Driver</Text>
+            <Text style={styles.bottomButtonText}>Share to Host</Text>
           </View>
         </TouchableOpacity>
       );

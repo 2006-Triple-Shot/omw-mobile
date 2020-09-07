@@ -10,7 +10,8 @@ import MapView, { Marker, Polyline } from "react-native-maps";
 import { apiKey } from "../../../secret";
 import _ from "lodash";
 import polyline from "@mapbox/polyline";
-import { socket } from "./Pass-guest";
+import io from "socket.io-client";
+// const socket = io("http://192.168.1.169:5000");
 
 export default class Driver extends Component {
   constructor(props) {
@@ -20,10 +21,9 @@ export default class Driver extends Component {
       longitude: null,
       error: "",
       pointCoords: [],
-      lookingForPassengers: false,
+      lookingForGuests: false,
       passengerFound: false,
     };
-    this.socket = socket;
   }
 
   componentDidMount() {
@@ -52,7 +52,6 @@ export default class Driver extends Component {
       });
       this.setState({
         pointCoords,
-        routeResponse: json,
       });
       this.map.fitToCoordinates(pointCoords, {
         edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
@@ -62,23 +61,21 @@ export default class Driver extends Component {
     }
   }
 
-  findPassengers() {
-    if (!this.state.lookingForPassengers) {
-      this.setState({ lookingForPassengers: true });
-      this.socket.emit("message", message);
-      this.socket.on("connect", () => {
-        socket.emit("passengerRequest");
-      });
-      this.socket.on("taxiRequest", (routeResponse) => {
-        console.log(routeResponse);
-        this.setState({
-          lookingForPassengers: false,
-          passengerFound: true,
-          routeResponse,
-        });
-        this.getRouteDirections(routeResponse.geocoded_waypoints[0].place_id);
-      });
-    }
+  lookForGuests() {
+    const socket = io("http://192.168.1.169:5000");
+    this.setState({ lookingForGuests: true });
+    // socket.on("connect", () => {
+    socket.emit("lookingForPassenger");
+    // });
+    socket.on("taxiRequest", (routeResponse) => {
+      console.log(routeResponse);
+      // this.setState({
+      //   lookingForGuests: false,
+      //   passengerFound: true,
+      //   routeResponse,
+      // });
+      this.getRouteDirections(routeResponse.geocoded_waypoints[1].place_id);
+    });
   }
 
   render() {
@@ -115,16 +112,16 @@ export default class Driver extends Component {
         </MapView>
         <TouchableOpacity
           style={styles.bottomButton}
-          onPress={() => this.findPassengers()}
+          onPress={() => this.lookForGuests()}
         >
           <View>
-            {this.state.lookingForPassengers ? (
+            {this.state.lookingForGuests ? (
               <ActivityIndicator
-                animating={this.state.lookingForPassengers}
+                animating={this.state.lookingForGuests}
                 size="large"
               />
             ) : null}
-            <Text style={styles.bottomButtonText}>Find Passenger</Text>
+            <Text style={styles.bottomButtonText}>Find Guests</Text>
           </View>
         </TouchableOpacity>
       </View>
