@@ -27,9 +27,9 @@ export default class Host extends Component {
       routeResponse: {},
       predictions: [],
       lookingForGuest: false,
-      driverIsOnTheWay: false,
+      guestIsOnTheWay: false,
       mylocation: {},
-      driverLocation: {},
+      guestLocation: {},
       guestList: [],
     };
 
@@ -103,38 +103,38 @@ export default class Host extends Component {
     const socket = socketIO.connect("http://192.168.0.153:5000");
 
     socket.on("connection");
-    socket.emit("taxiRequest", this.state.routeResponse);
+    socket.emit("guestRequest", this.state.routeResponse);
 
-    socket.on("accepted", (driverLocation) => {
+    socket.on("accepted", (guestLocation) => {
       console.log("++++++ACCEPTED++++++++");
-      const pointCoords = [...this.state.pointCoords, driverLocation];
+      const pointCoords = [...this.state.pointCoords, guestLocation];
 
       // this.map.fitToCoordinates(pointCoords, {
       //   edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
       // });
       this.setState({
         lookingForGuest: false,
-        driverIsOnTheWay: true,
-        driverLocation,
+        guestIsOnTheWay: true,
+        guestLocation,
         pointCoords,
-        guestList: [...this.state.guestList, driverLocation],
+        guestList: [...this.state.guestList, guestLocation],
       });
     });
 
-    socket.on("driverTracking", (driverLocation) => {
-      const pointCoords = [...this.state.pointCoords, driverLocation];
+    socket.on("guestTracking", (guestLocation) => {
+      const pointCoords = [...this.state.pointCoords, guestLocation];
 
       // this.map.fitToCoordinates(pointCoords, {
       //   edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
       // });
       this.setState({
         lookingForGuest: false,
-        driverIsOnTheWay: true,
-        driverLocation,
+        guestIsOnTheWay: true,
+        guestLocation,
         pointCoords,
       });
 
-      // this.onChangeDestinationDebounced(driverLocation);
+      // this.onChangeDestinationDebounced(guestLocation);
     });
   }
 
@@ -142,11 +142,11 @@ export default class Host extends Component {
     let marker = null;
     let getGuest = null;
     let findingGuestActIndicator = null;
-    let driverMarker = null;
+    let guestMarker = null;
 
     if (!this.state.latitude) return null;
     if (this.state.guestList) {
-      driverMarker = this.state.guestList.map((marker) => {
+      guestMarker = this.state.guestList.map((marker) => {
         <Marker coordinate={marker} key={this.getRandomInt()}>
           <Image
             source={require("../images/carIcon.png")}
@@ -156,12 +156,9 @@ export default class Host extends Component {
       });
     }
 
-    if (this.state.driverIsOnTheWay) {
-      driverMarker = (
-        <Marker
-          coordinate={this.state.driverLocation}
-          key={this.getRandomInt()}
-        >
+    if (this.state.guestIsOnTheWay) {
+      guestMarker = (
+        <Marker coordinate={this.state.guestLocation} key={this.getRandomInt()}>
           <Image
             source={require("../images/carIcon.png")}
             style={{ width: 40, height: 40 }}
@@ -245,7 +242,7 @@ export default class Host extends Component {
             strokeColor="red"
           />
           {marker}
-          {driverMarker}
+          {guestMarker}
         </MapView>
         <TextInput
           placeholder="Enter destination..."
