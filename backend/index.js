@@ -22,12 +22,12 @@ io.on("connection", (socket) => {
     console.log("*****************");
   });
 
-  socket.on("taxiRequest", (routeToPassenger) => {
+  socket.on("taxiRequest", (routeToHost) => {
     passengerSocket = socket;
-    console.log("Passenger wants a taxi at ");
+    console.log("Host wants a taxi at ");
     if (taxiSocket !== null) {
-      io.to("room 237").emit("taxiRequest", routeToPassenger);
-      // taxiSocket.emit("taxiRequest", routeToPassenger);
+      io.to("room 237").emit("taxiRequest", routeToHost);
+      // taxiSocket.emit("taxiRequest", routeToHost);
       console.log("=======================");
     }
   });
