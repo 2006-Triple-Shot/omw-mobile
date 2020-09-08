@@ -17,7 +17,7 @@ io.on("connection", (socket) => {
 
   socket.on("passengerRequest", (driverlocation) => {
     taxiSocket = socket;
-    console.log("Driver wants a passenger at", driverlocation);
+    console.log("Guest wants a passenger at", driverlocation);
     console.log("taxiSocket");
     console.log("*****************");
   });
