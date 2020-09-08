@@ -128,16 +128,6 @@ export default class Driver extends Component {
       });
     }
   }
-  // onPress = async () => {
-  //   const { status } = await Location.requestPermissionsAsync();
-  //   if (status === "granted") {
-  //     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-  //       accuracy: Location.Accuracy.Balanced,
-  //       // distanceInterval: 0,
-  //       // timeInterval: 100,
-  //     });
-  //   }
-  // };
 
   acceptPassengerRequest = async () => {
     socket.emit("accepted", {
@@ -155,11 +145,11 @@ export default class Driver extends Component {
     let endMarker = null;
     let startMarker = null;
     let findingPassengerActIndicator = null;
-    let passengerSearchText = "FIND PASSENGERS 👥";
+    let passengerSearchText = "Join Event👥";
     let bottomButtonFunction = this.findPassengers;
     if (!this.state.latitude) return null;
     if (this.state.lookingForPassengers) {
-      passengerSearchText = "FINDING PASSENGERS...";
+      passengerSearchText = "Share Live LocationR";
       findingPassengerActIndicator = (
         <ActivityIndicator
           key={this.getRandomInt()}

@@ -14,7 +14,7 @@ io.on("connection", (socket) => {
     const rooms = Object.keys(socket.rooms);
     console.log(rooms); // [ <socket.id>, 'room 237']
   });
-  
+
   socket.on("passengerRequest", (driverlocation) => {
     taxiSocket = socket;
     console.log("Driver wants a passenger at", driverlocation);
@@ -33,7 +33,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("accepted", (driverLocation) => {
-    console.log("<<<<<<<<<<DRiver location Backend>>>>>>>", driverLocation);
+    console.log("<<<<<<<<<<DRiver Accepted Backend>>>>>>>", driverLocation);
     if (passengerSocket !== null) {
       passengerSocket.emit("accepted", driverLocation);
     }

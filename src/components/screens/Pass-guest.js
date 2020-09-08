@@ -146,7 +146,7 @@ export default class Passenger extends Component {
     let driverMarker = null;
 
     if (!this.state.latitude) return null;
-    if (this.state.driverIsOnTheWay) {
+    if (this.state.guestList) {
       driverMarker = this.state.guestList.map((marker) => {
         <Marker coordinate={marker} key={this.getRandomInt()}>
           <Image
@@ -156,6 +156,21 @@ export default class Passenger extends Component {
         </Marker>;
       });
     }
+
+    if (this.state.driverIsOnTheWay) {
+      driverMarker = (
+        <Marker
+          coordinate={this.state.driverLocation}
+          key={this.getRandomInt()}
+        >
+          <Image
+            source={require("../images/carIcon.png")}
+            style={{ width: 40, height: 40 }}
+          />
+        </Marker>
+      );
+    }
+
     if (this.state.lookingForDriver) {
       findingDriverActIndicator = (
         <ActivityIndicator
@@ -179,7 +194,7 @@ export default class Passenger extends Component {
       <BottomButton
         key={this.getRandomInt()}
         onPressFunction={() => this.requestDriver()}
-        buttonText="REQUEST 🚗"
+        buttonText="Connect with Guests"
       >
         {findingDriverActIndicator}
       </BottomButton>
