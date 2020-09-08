@@ -7,7 +7,6 @@ import polyline from "@mapbox/polyline";
 import socketIO from "socket.io-client";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
-import axios from "axios";
 
 const LOCATION_TASK_NAME = "background-location-task";
 const socket = socketIO.connect("http://192.168.0.153:5000");
@@ -45,7 +44,6 @@ export default class Guest extends Component {
       lookingForHosts: false,
       pending: true,
       indicator: true,
-      complete: false,
     };
     this.acceptHostRequest = this.acceptHostRequest.bind(this);
     this.findHosts = this.findHosts.bind(this);
@@ -106,14 +104,10 @@ export default class Guest extends Component {
       this.setState({ lookingForHosts: true });
 
       socket.on("connection");
-      socket.emit(
-        "joinEvent",
-        {
-          latitude: this.state.latitude,
-          longitude: this.state.longitude,
-        },
-        this.props.Id
-      );
+      socket.emit("joinEvent", {
+        latitude: this.state.latitude,
+        longitude: this.state.longitude,
+      });
 
       socket.on("guestRequest", async (routeResponse) => {
         // console.log(routeResponse);
@@ -122,9 +116,9 @@ export default class Guest extends Component {
           routeResponse,
           indicator: false,
         });
-        // await this.getRouteDirections(
-        // routeResponse.geocoded_waypoints[0].place_id
-        // );
+        await this.getRouteDirections(
+          routeResponse.geocoded_waypoints[0].place_id
+        );
         // this.map.fitToCoordinates(this.props.pointCoords, {
         //   edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
         // });
@@ -145,10 +139,6 @@ export default class Guest extends Component {
     });
   };
 
-  stopSharing() {
-    socket.emit("stopSharing");
-    this.setState({ complete: true });
-  }
   render() {
     let endMarker = null;
     let startMarker = null;
