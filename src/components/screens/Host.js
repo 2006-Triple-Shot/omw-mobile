@@ -16,6 +16,16 @@ import socketIO from "socket.io-client";
 import BottomButton from "./BottomButton";
 import polyline from "@mapbox/polyline";
 const guestList = {};
+const dummyData = {
+  1: { latitude: 37.38723661, longitude: -120.15426073 },
+  2: { latitude: 38.38723661, longitude: -118.15426073 },
+  3: { latitude: 39.38723661, longitude: -116.15426073 },
+  4: { latitude: 40.38723661, longitude: -122.15426073 },
+  5: { latitude: 41.38723661, longitude: -124.15426073 },
+  6: { latitude: 42.38723661, longitude: -126.15426073 },
+  7: { latitude: 43.38723661, longitude: -128.15426073 },
+  8: { latitude: 44.38723661, longitude: -130.15426073 },
+};
 export default class Host extends Component {
   constructor(props) {
     super(props);
@@ -120,8 +130,9 @@ export default class Host extends Component {
       });
     });
 
-    socket.on("liveTracking", (guestLocation) => {
+    socket.on("liveTracking", (guestLocation, Id) => {
       const pointCoords = [...this.state.pointCoords, guestLocation];
+      guestList[Id] = guestLocation;
 
       // this.map.fitToCoordinates(pointCoords, {
       //   edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
@@ -142,18 +153,9 @@ export default class Host extends Component {
     let getGuest = null;
     let findingGuestActIndicator = null;
     let guestMarker = null;
-
+    // const drivers = Object.values(dummyData);
+    const drivers = this.state.pointCoords;
     if (!this.state.latitude) return null;
-    // if (this.state.guestList) {
-    //   guestMarker = this.state.guestList.map((marker) => {
-    //     <Marker coordinate={marker} key={this.getRandomInt()}>
-    //       <Image
-    //         source={require("../images/carIcon.png")}
-    //         style={{ width: 40, height: 40 }}
-    //       />
-    //     </Marker>;
-    //   });
-    // }
 
     if (this.state.guestIsOnTheWay) {
       guestMarker = (
@@ -240,6 +242,19 @@ export default class Host extends Component {
             strokeWidth={1}
             strokeColor="red"
           />
+          {drivers.map((driver) => (
+            <MapView.Marker
+              coordinate={driver}
+              title="guest"
+              key={this.getRandomInt()}
+            >
+              <Image
+                source={require("../images/carIcon.png")}
+                style={{ width: 40, height: 40 }}
+              />
+            </MapView.Marker>
+          ))}
+
           {marker}
           {guestMarker}
         </MapView>
