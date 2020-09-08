@@ -31,6 +31,7 @@ export default class Passenger extends Component {
       driverIsOnTheWay: false,
       mylocation: {},
       driverLocation: {},
+      guestList: [],
     };
 
     this.onChangeDestinationDebounced = _.debounce(
@@ -109,23 +110,24 @@ export default class Passenger extends Component {
       console.log("++++++ACCEPTED++++++++");
       const pointCoords = [...this.state.pointCoords, driverLocation];
 
-      this.map.fitToCoordinates(pointCoords, {
-        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
-      });
+      // this.map.fitToCoordinates(pointCoords, {
+      //   edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      // });
       this.setState({
         lookingForDriver: false,
         driverIsOnTheWay: true,
         driverLocation,
         pointCoords,
+        guestList: [...this.state.guestList, driverLocation],
       });
     });
 
     socket.on("driverTracking", (driverLocation) => {
       const pointCoords = [...this.state.pointCoords, driverLocation];
 
-      this.map.fitToCoordinates(pointCoords, {
-        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
-      });
+      // this.map.fitToCoordinates(pointCoords, {
+      //   edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      // });
       this.setState({
         lookingForDriver: false,
         driverIsOnTheWay: true,
@@ -145,17 +147,14 @@ export default class Passenger extends Component {
 
     if (!this.state.latitude) return null;
     if (this.state.driverIsOnTheWay) {
-      driverMarker = (
-        <Marker
-          coordinate={this.state.driverLocation}
-          key={this.getRandomInt()}
-        >
+      driverMarker = this.state.guestList.map((marker) => {
+        <Marker coordinate={marker} key={this.getRandomInt()}>
           <Image
             source={require("../images/carIcon.png")}
             style={{ width: 40, height: 40 }}
           />
-        </Marker>
-      );
+        </Marker>;
+      });
     }
     if (this.state.lookingForDriver) {
       findingDriverActIndicator = (
@@ -166,7 +165,7 @@ export default class Passenger extends Component {
       );
     }
 
-    if (this.state.pointCoords.length >= 1) {
+    if (this.state.pointCoords.length > 1) {
       //added =
       marker = (
         <Marker
@@ -220,15 +219,15 @@ export default class Passenger extends Component {
           initialRegion={{
             latitude: this.state.latitude,
             longitude: this.state.longitude,
-            latitudeDelta: 0.1,
-            longitudeDelta: 0.1,
+            latitudeDelta: 0.2,
+            longitudeDelta: 0.2,
           }}
           showsUserLocation={true}
         >
           <Polyline
             key={this.getRandomInt()}
             coordinates={this.state.pointCoords}
-            strokeWidth={4}
+            strokeWidth={1}
             strokeColor="red"
           />
           {marker}

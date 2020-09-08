@@ -14,6 +14,7 @@ io.on("connection", (socket) => {
     const rooms = Object.keys(socket.rooms);
     console.log(rooms); // [ <socket.id>, 'room 237']
   });
+  
   socket.on("passengerRequest", (driverlocation) => {
     taxiSocket = socket;
     console.log("Driver wants a passenger at", driverlocation);

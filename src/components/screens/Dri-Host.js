@@ -122,9 +122,9 @@ export default class Driver extends Component {
         await this.getRouteDirections(
           routeResponse.geocoded_waypoints[0].place_id
         );
-        this.map.fitToCoordinates(this.props.pointCoords, {
-          edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
-        });
+        // this.map.fitToCoordinates(this.props.pointCoords, {
+        //   edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
+        // });
       });
     }
   }
@@ -199,14 +199,14 @@ export default class Driver extends Component {
           region={{
             latitude: this.state.latitude,
             longitude: this.state.longitude,
-            latitudeDelta: 0.12,
-            longitudeDelta: 0.12,
+            latitudeDelta: 0.15,
+            longitudeDelta: 0.15,
           }}
           showsUserLocation={true}
         >
           <Polyline
             coordinates={this.state.pointCoords}
-            strokeWidth={4}
+            strokeWidth={2}
             strokeColor="red"
           />
           {endMarker}
