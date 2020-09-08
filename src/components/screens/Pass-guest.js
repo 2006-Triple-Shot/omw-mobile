@@ -8,7 +8,6 @@ import {
   Keyboard,
   ActivityIndicator,
   Image,
-  TouchableOpacity,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { apiKey } from "./google-api";
@@ -17,7 +16,7 @@ import socketIO from "socket.io-client";
 import BottomButton from "./BottomButton";
 import polyline from "@mapbox/polyline";
 
-export default class Passenger extends Component {
+export default class Host extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -27,10 +26,11 @@ export default class Passenger extends Component {
       destination: "",
       routeResponse: {},
       predictions: [],
-      lookingForDriver: false,
+      lookingForGuest: false,
       driverIsOnTheWay: false,
       mylocation: {},
       driverLocation: {},
+      guestList: [],
     };
 
     this.onChangeDestinationDebounced = _.debounce(
@@ -97,10 +97,10 @@ export default class Passenger extends Component {
   getRandomInt() {
     return Math.floor(Math.random() * Math.floor(1000));
   }
-  requestDriver() {
-    this.setState({ lookingForDriver: true });
+  requestGuest() {
+    this.setState({ lookingForGuest: true });
 
-    const socket = socketIO.connect("http://192.168.0.152:5000");
+    const socket = socketIO.connect("http://192.168.0.153:5000");
 
     socket.on("connection");
     socket.emit("taxiRequest", this.state.routeResponse);
@@ -109,25 +109,26 @@ export default class Passenger extends Component {
       console.log("++++++ACCEPTED++++++++");
       const pointCoords = [...this.state.pointCoords, driverLocation];
 
-      this.map.fitToCoordinates(pointCoords, {
-        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
-      });
+      // this.map.fitToCoordinates(pointCoords, {
+      //   edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      // });
       this.setState({
-        lookingForDriver: false,
+        lookingForGuest: false,
         driverIsOnTheWay: true,
         driverLocation,
         pointCoords,
+        guestList: [...this.state.guestList, driverLocation],
       });
     });
 
     socket.on("driverTracking", (driverLocation) => {
       const pointCoords = [...this.state.pointCoords, driverLocation];
 
-      this.map.fitToCoordinates(pointCoords, {
-        edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
-      });
+      // this.map.fitToCoordinates(pointCoords, {
+      //   edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      // });
       this.setState({
-        lookingForDriver: false,
+        lookingForGuest: false,
         driverIsOnTheWay: true,
         driverLocation,
         pointCoords,
@@ -139,11 +140,22 @@ export default class Passenger extends Component {
 
   render() {
     let marker = null;
-    let getDriver = null;
-    let findingDriverActIndicator = null;
+    let getGuest = null;
+    let findingGuestActIndicator = null;
     let driverMarker = null;
 
     if (!this.state.latitude) return null;
+    if (this.state.guestList) {
+      driverMarker = this.state.guestList.map((marker) => {
+        <Marker coordinate={marker} key={this.getRandomInt()}>
+          <Image
+            source={require("../images/carIcon.png")}
+            style={{ width: 40, height: 40 }}
+          />
+        </Marker>;
+      });
+    }
+
     if (this.state.driverIsOnTheWay) {
       driverMarker = (
         <Marker
@@ -157,16 +169,17 @@ export default class Passenger extends Component {
         </Marker>
       );
     }
-    if (this.state.lookingForDriver) {
-      findingDriverActIndicator = (
+
+    if (this.state.lookingForGuest) {
+      findingGuestActIndicator = (
         <ActivityIndicator
           size="large"
-          animating={this.state.lookingForDriver}
+          animating={this.state.lookingForGuest}
         />
       );
     }
 
-    if (this.state.pointCoords.length >= 1) {
+    if (this.state.pointCoords.length > 1) {
       //added =
       marker = (
         <Marker
@@ -176,13 +189,13 @@ export default class Passenger extends Component {
       );
     }
 
-    getDriver = (
+    getGuest = (
       <BottomButton
         key={this.getRandomInt()}
-        onPressFunction={() => this.requestDriver()}
-        buttonText="REQUEST 🚗"
+        onPressFunction={() => this.requestGuest()}
+        buttonText="Connect with Guests"
       >
-        {findingDriverActIndicator}
+        {findingGuestActIndicator}
       </BottomButton>
     );
 
@@ -220,15 +233,15 @@ export default class Passenger extends Component {
           initialRegion={{
             latitude: this.state.latitude,
             longitude: this.state.longitude,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.0121,
+            latitudeDelta: 0.2,
+            longitudeDelta: 0.2,
           }}
           showsUserLocation={true}
         >
           <Polyline
             key={this.getRandomInt()}
             coordinates={this.state.pointCoords}
-            strokeWidth={4}
+            strokeWidth={1}
             strokeColor="red"
           />
           {marker}
@@ -246,14 +259,14 @@ export default class Passenger extends Component {
         />
 
         {predictions}
-        {getDriver}
+        {getGuest}
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  findDriver: {
+  findGuest: {
     backgroundColor: "black",
     marginTop: "auto",
     margin: 20,
@@ -262,7 +275,7 @@ const styles = StyleSheet.create({
     paddingRight: 30,
     alignSelf: "center",
   },
-  findDriverText: {
+  findGuestText: {
     fontSize: 20,
     color: "white",
     fontWeight: "600",

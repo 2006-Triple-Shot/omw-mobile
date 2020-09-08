@@ -1,13 +1,5 @@
 import React, { Component } from "react";
-import {
-  StyleSheet,
-  View,
-  Image,
-  ActivityIndicator,
-  Linking,
-  Platform,
-  Alert,
-} from "react-native";
+import { StyleSheet, View, Image, ActivityIndicator } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import BottomButton from "./BottomButton";
 import { apiKey } from "./google-api";
@@ -15,8 +7,9 @@ import polyline from "@mapbox/polyline";
 import socketIO from "socket.io-client";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
+
 const LOCATION_TASK_NAME = "background-location-task";
-const socket = socketIO.connect("http://192.168.0.152:5000");
+const socket = socketIO.connect("http://192.168.0.153:5000");
 
 TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
   let count = 1;
@@ -38,7 +31,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
   }
 });
 
-export default class Driver extends Component {
+export default class Guest extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -47,10 +40,12 @@ export default class Driver extends Component {
       pointCoords: [],
       destination: "",
       routeResponse: {},
-      lookingForPassengers: false,
+      lookingForHosts: false,
+      pending: true,
+      indicator: true,
     };
-    this.acceptPassengerRequest = this.acceptPassengerRequest.bind(this);
-    this.findPassengers = this.findPassengers.bind(this);
+    this.acceptHostRequest = this.acceptHostRequest.bind(this);
+    this.findHosts = this.findHosts.bind(this);
 
     this.getRouteDirections = this.getRouteDirections.bind(this);
   }
@@ -62,7 +57,7 @@ export default class Driver extends Component {
   componentDidMount() {
     Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: 4,
-      distanceInterval: 300,
+      distanceInterval: 500,
     });
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {
@@ -103,9 +98,9 @@ export default class Driver extends Component {
     return Math.floor(Math.random() * Math.floor(1000));
   }
 
-  findPassengers() {
-    if (!this.state.lookingForPassengers) {
-      this.setState({ lookingForPassengers: true });
+  findHosts() {
+    if (!this.state.lookingForHosts) {
+      this.setState({ lookingForHosts: true });
 
       socket.on("connection");
       socket.emit("passengerRequest", {
@@ -118,60 +113,54 @@ export default class Driver extends Component {
         this.setState({
           passengerFound: true,
           routeResponse,
+          indicator: false,
         });
         await this.getRouteDirections(
           routeResponse.geocoded_waypoints[0].place_id
         );
-        this.map.fitToCoordinates(this.props.pointCoords, {
-          edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
-        });
+        // this.map.fitToCoordinates(this.props.pointCoords, {
+        //   edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
+        // });
       });
     }
   }
-  // onPress = async () => {
-  //   const { status } = await Location.requestPermissionsAsync();
-  //   if (status === "granted") {
-  //     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-  //       accuracy: Location.Accuracy.Balanced,
-  //       // distanceInterval: 0,
-  //       // timeInterval: 100,
-  //     });
-  //   }
-  // };
 
-  acceptPassengerRequest = async () => {
+  acceptHostRequest = async () => {
     socket.emit("accepted", {
       latitude: this.state.latitude,
       longitude: this.state.longitude,
     });
 
     this.setState({
-      lookingForPassengers: false,
+      lookingForHosts: false,
       passengerFound: true,
+      pending: false,
     });
   };
 
   render() {
     let endMarker = null;
     let startMarker = null;
-    let findingPassengerActIndicator = null;
-    let passengerSearchText = "FIND PASSENGERS 👥";
-    let bottomButtonFunction = this.findPassengers;
+    let button = null;
+    let findingHostActIndicator = null;
+    let passengerSearchText = "Join 👥";
+    let bottomButtonFunction = this.findHosts;
     if (!this.state.latitude) return null;
-    if (this.state.lookingForPassengers) {
-      passengerSearchText = "FINDING PASSENGERS...";
-      findingPassengerActIndicator = (
+
+    if (this.state.lookingForHosts && this.state.indicator) {
+      passengerSearchText = "Hold, tight..";
+      findingHostActIndicator = (
         <ActivityIndicator
           key={this.getRandomInt()}
           size="large"
-          animating={this.state.lookingForPassengers}
+          animating={this.state.lookingForHosts}
         />
       );
     }
 
-    if (this.state.passengerFound) {
-      passengerSearchText = "FOUND PASSENGER! ACCEPT RIDE?";
-      bottomButtonFunction = this.acceptPassengerRequest;
+    if (this.state.passengerFound && this.state.pending) {
+      passengerSearchText = "Share Live Location";
+      bottomButtonFunction = this.acceptHostRequest;
     }
 
     if (this.state.pointCoords.length > 1) {
@@ -187,7 +176,16 @@ export default class Driver extends Component {
         </Marker>
       );
     }
-
+    if (this.state.pending) {
+      button = (
+        <BottomButton
+          onPressFunction={bottomButtonFunction}
+          buttonText={passengerSearchText}
+        >
+          {findingHostActIndicator}
+        </BottomButton>
+      );
+    }
     return (
       <View style={styles.container}>
         <MapView
@@ -199,32 +197,27 @@ export default class Driver extends Component {
           region={{
             latitude: this.state.latitude,
             longitude: this.state.longitude,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.0121,
+            latitudeDelta: 0.15,
+            longitudeDelta: 0.15,
           }}
           showsUserLocation={true}
         >
           <Polyline
             coordinates={this.state.pointCoords}
-            strokeWidth={4}
+            strokeWidth={2}
             strokeColor="red"
           />
           {endMarker}
           {startMarker}
         </MapView>
-        <BottomButton
-          onPressFunction={bottomButtonFunction}
-          buttonText={passengerSearchText}
-        >
-          {findingPassengerActIndicator}
-        </BottomButton>
+        {button}
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  findDriver: {
+  findGuest: {
     backgroundColor: "black",
     marginTop: "auto",
     margin: 20,
@@ -233,7 +226,7 @@ const styles = StyleSheet.create({
     paddingRight: 30,
     alignSelf: "center",
   },
-  findDriverText: {
+  findGuestText: {
     fontSize: 20,
     color: "white",
     fontWeight: "600",
