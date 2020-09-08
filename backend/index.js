@@ -7,13 +7,11 @@ const PORT = process.env.PORT || 5000;
 let guestSocket = null;
 let hostSocket = null;
 let count = 0;
-let room = ["room 237"];
 const obj = { id: "", room: "" };
 io.on("connection", (socket) => {
   count++;
   console.log("-----Backend connected----", count);
-
-  socket.join(room, () => {
+  socket.join(["room 237"], () => {
     const rooms = Object.keys(socket.rooms);
     const val = Object.values(socket.rooms);
     console.log(rooms); // [ <socket.id>, 'room 237']
@@ -51,17 +49,6 @@ io.on("connection", (socket) => {
     console.log("<<<<<<<<<<BACKGROUND DRIVER TRACKING >>>>>>>", guestLocation);
     if (hostSocket !== null) {
       hostSocket.emit("liveTracking", guestLocation, count);
-    }
-  });
-
-  socket.on("stopSharing", function (room) {
-    try {
-      console.log("[socket]", "leave room :", room);
-      socket.leave(room);
-      socket.to(room).emit("user left", socket.id);
-    } catch (e) {
-      console.log("[error]", "leave room :", e);
-      socket.emit("error", "couldnt perform requested action");
     }
   });
 });
