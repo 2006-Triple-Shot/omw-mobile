@@ -17,9 +17,12 @@ io.on("connection", (socket) => {
 
   socket.on("passengerRequest", (driverlocation) => {
     taxiSocket = socket;
-    console.log("Guest wants a passenger at", driverlocation);
-    console.log("taxiSocket");
-    console.log("*****************");
+    if (taxiSocket !== null) {
+      io.to("room 237").emit("start");
+      console.log("Guest wants a passenger at", driverlocation);
+      console.log("taxiSocket");
+      console.log("*****************");
+    }
   });
 
   socket.on("taxiRequest", (routeToHost) => {
