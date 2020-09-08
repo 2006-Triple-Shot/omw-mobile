@@ -6,8 +6,8 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from "react-native";
-import Guest from "./src/components/screens/Dri-Host";
-import Host from "./src/components/screens/Pass-guest";
+import Guest from "./src/components/screens/Guest";
+import Host from "./src/components/screens/Host";
 import Welcome from "./src/components/screens/Welcome";
 
 import * as Location from "expo-location";

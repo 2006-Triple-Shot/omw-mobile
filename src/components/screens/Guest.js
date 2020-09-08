@@ -22,7 +22,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
 
     // setInterval(() => {
     count++;
-    socket.emit("guestTracking", {
+    socket.emit("liveTracking", {
       latitude: locations[0].coords.latitude,
       longitude: locations[0].coords.longitude,
     });
@@ -35,6 +35,7 @@ export default class Guest extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      userId: "",
       latitude: null,
       longitude: null,
       pointCoords: [],
@@ -103,7 +104,7 @@ export default class Guest extends Component {
       this.setState({ lookingForHosts: true });
 
       socket.on("connection");
-      socket.emit("hostRequest", {
+      socket.emit("joinEvent", {
         latitude: this.state.latitude,
         longitude: this.state.longitude,
       });
@@ -126,7 +127,7 @@ export default class Guest extends Component {
   }
 
   acceptHostRequest = async () => {
-    socket.emit("accepted", {
+    socket.emit("guestAccepts", {
       latitude: this.state.latitude,
       longitude: this.state.longitude,
     });
