@@ -4,8 +4,8 @@ const server = require("http").createServer(app);
 const io = require("socket.io").listen(server);
 const PORT = process.env.PORT || 5000;
 
-let taxiSocket = null;
-let passengerSocket = null;
+let guestSocket = null;
+let hostSocket = null;
 let count = 0;
 io.on("connection", (socket) => {
   count++;
@@ -15,37 +15,37 @@ io.on("connection", (socket) => {
     console.log(rooms); // [ <socket.id>, 'room 237']
   });
 
-  socket.on("passengerRequest", (driverlocation) => {
-    taxiSocket = socket;
-    if (taxiSocket !== null) {
+  socket.on("hostRequest", (guestlocation) => {
+    guestSocket = socket;
+    if (guestSocket !== null) {
       io.to("room 237").emit("start");
-      console.log("Guest wants a passenger at", driverlocation);
-      console.log("taxiSocket");
+      console.log("Guest wants a host at", guestlocation);
+      console.log("guestSocket");
       console.log("*****************");
     }
   });
 
-  socket.on("taxiRequest", (routeToHost) => {
-    passengerSocket = socket;
-    console.log("Host wants a taxi at ");
-    if (taxiSocket !== null) {
-      io.to("room 237").emit("taxiRequest", routeToHost);
-      // taxiSocket.emit("taxiRequest", routeToHost);
+  socket.on("guestRequest", (routeToHost) => {
+    hostSocket = socket;
+    console.log("Host wants a guest at ");
+    if (guestSocket !== null) {
+      io.to("room 237").emit("guestRequest", routeToHost);
+      // guestSocket.emit("guestRequest", routeToHost);
       console.log("=======================");
     }
   });
 
-  socket.on("accepted", (driverLocation) => {
-    console.log("<<<<<<<<<<DRiver Accepted Backend>>>>>>>", driverLocation);
-    if (passengerSocket !== null) {
-      passengerSocket.emit("accepted", driverLocation);
+  socket.on("accepted", (guestLocation) => {
+    console.log("<<<<<<<<<<DRiver Accepted Backend>>>>>>>", guestLocation);
+    if (hostSocket !== null) {
+      hostSocket.emit("accepted", guestLocation);
     }
   });
 
-  socket.on("driverTracking", (driverLocation) => {
-    console.log("<<<<<<<<<<BACKGROUND DRIVER TRACKING >>>>>>>", driverLocation);
-    if (passengerSocket !== null) {
-      passengerSocket.emit("driverTracking", driverLocation);
+  socket.on("guestTracking", (guestLocation) => {
+    console.log("<<<<<<<<<<BACKGROUND DRIVER TRACKING >>>>>>>", guestLocation);
+    if (hostSocket !== null) {
+      hostSocket.emit("guestTracking", guestLocation);
     }
   });
 });

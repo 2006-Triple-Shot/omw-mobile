@@ -22,7 +22,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
 
     // setInterval(() => {
     count++;
-    socket.emit("driverTracking", {
+    socket.emit("guestTracking", {
       latitude: locations[0].coords.latitude,
       longitude: locations[0].coords.longitude,
     });
@@ -103,15 +103,15 @@ export default class Guest extends Component {
       this.setState({ lookingForHosts: true });
 
       socket.on("connection");
-      socket.emit("passengerRequest", {
+      socket.emit("hostRequest", {
         latitude: this.state.latitude,
         longitude: this.state.longitude,
       });
 
-      socket.on("taxiRequest", async (routeResponse) => {
+      socket.on("guestRequest", async (routeResponse) => {
         // console.log(routeResponse);
         this.setState({
-          passengerFound: true,
+          hostFound: true,
           routeResponse,
           indicator: false,
         });
@@ -133,7 +133,7 @@ export default class Guest extends Component {
 
     this.setState({
       lookingForHosts: false,
-      passengerFound: true,
+      hostFound: true,
       pending: false,
     });
   };
@@ -143,12 +143,12 @@ export default class Guest extends Component {
     let startMarker = null;
     let button = null;
     let findingHostActIndicator = null;
-    let passengerSearchText = "Join 👥";
+    let hostSearchText = "Join 👥";
     let bottomButtonFunction = this.findHosts;
     if (!this.state.latitude) return null;
 
     if (this.state.lookingForHosts && this.state.indicator) {
-      passengerSearchText = "Hold, tight..";
+      hostSearchText = "Hold, tight..";
       findingHostActIndicator = (
         <ActivityIndicator
           key={this.getRandomInt()}
@@ -158,8 +158,8 @@ export default class Guest extends Component {
       );
     }
 
-    if (this.state.passengerFound && this.state.pending) {
-      passengerSearchText = "Share Live Location";
+    if (this.state.hostFound && this.state.pending) {
+      hostSearchText = "Share Live Location";
       bottomButtonFunction = this.acceptHostRequest;
     }
 
@@ -180,7 +180,7 @@ export default class Guest extends Component {
       button = (
         <BottomButton
           onPressFunction={bottomButtonFunction}
-          buttonText={passengerSearchText}
+          buttonText={hostSearchText}
         >
           {findingHostActIndicator}
         </BottomButton>
