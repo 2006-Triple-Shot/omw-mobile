@@ -15,6 +15,7 @@
   "dependencies": {
     "@mapbox/polyline": "^1.1.1",
     "abort-controller": "3.0.0",
+    "axios": "^0.20.0",
     "expo": "~38.0.8",
     "expo-constants": "~9.1.1",
     "expo-location": "~8.2.1",
