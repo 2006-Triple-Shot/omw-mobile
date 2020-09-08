@@ -220,8 +220,8 @@ export default class Passenger extends Component {
           initialRegion={{
             latitude: this.state.latitude,
             longitude: this.state.longitude,
-            latitudeDelta: 0.12,
-            longitudeDelta: 0.12,
+            latitudeDelta: 0.1,
+            longitudeDelta: 0.1,
           }}
           showsUserLocation={true}
         >

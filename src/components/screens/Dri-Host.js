@@ -62,7 +62,7 @@ export default class Driver extends Component {
   componentDidMount() {
     Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: 4,
-      distanceInterval: 300,
+      distanceInterval: 500,
     });
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {

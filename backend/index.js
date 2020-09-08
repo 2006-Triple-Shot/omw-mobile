@@ -10,7 +10,10 @@ let count = 0;
 io.on("connection", (socket) => {
   count++;
   console.log("-----Backend connected----", count);
-
+  socket.join(["room 237"], () => {
+    const rooms = Object.keys(socket.rooms);
+    console.log(rooms); // [ <socket.id>, 'room 237']
+  });
   socket.on("passengerRequest", (driverlocation) => {
     taxiSocket = socket;
     console.log("Driver wants a passenger at", driverlocation);
@@ -22,7 +25,8 @@ io.on("connection", (socket) => {
     passengerSocket = socket;
     console.log("Passenger wants a taxi at ");
     if (taxiSocket !== null) {
-      taxiSocket.emit("taxiRequest", routeToPassenger);
+      io.to("room 237").emit("taxiRequest", routeToPassenger);
+      // taxiSocket.emit("taxiRequest", routeToPassenger);
       console.log("=======================");
     }
   });
