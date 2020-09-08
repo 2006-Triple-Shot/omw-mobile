@@ -7,12 +7,15 @@ const PORT = process.env.PORT || 5000;
 let guestSocket = null;
 let hostSocket = null;
 let count = 0;
+const obj = { id: "", room: "" };
 io.on("connection", (socket) => {
   count++;
   console.log("-----Backend connected----", count);
   socket.join(["room 237"], () => {
     const rooms = Object.keys(socket.rooms);
+    const val = Object.values(socket.rooms);
     console.log(rooms); // [ <socket.id>, 'room 237']
+    console.log(val); // [ <socket.id>, 'room 237']
   });
 
   socket.on("hostRequest", (guestlocation) => {

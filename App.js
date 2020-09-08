@@ -1,7 +1,14 @@
 import React, { Component } from "react";
-import { StyleSheet, Button, View, SafeAreaView } from "react-native";
+import {
+  StyleSheet,
+  Button,
+  View,
+  SafeAreaView,
+  TouchableOpacity,
+} from "react-native";
 import Guest from "./src/components/screens/Dri-Host";
 import Host from "./src/components/screens/Pass-guest";
+import Welcome from "./src/components/screens/Welcome";
 
 import * as Location from "expo-location";
 import Constants from "expo-constants";
@@ -12,10 +19,14 @@ export default class App extends Component {
     this.state = {
       isGuest: false,
       isHost: false,
+      hasToken: false,
     };
   }
   componentDidMount() {
     Location.requestPermissionsAsync();
+  }
+  click() {
+    this.setState({ hasToken: true });
   }
   render() {
     if (this.state.isGuest) {
@@ -37,6 +48,8 @@ export default class App extends Component {
             title="Guest"
             onPress={() => this.setState({ isGuest: true })}
           />
+
+          {/* <Welcome /> */}
         </View>
       </SafeAreaView>
     );
@@ -45,9 +58,11 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: "column",
     marginTop: Constants.statusBarHeight,
     marginHorizontal: 16,
   },
+
   separator: {
     marginVertical: 28,
     borderBottomColor: "#737373",
