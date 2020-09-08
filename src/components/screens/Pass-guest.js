@@ -100,7 +100,7 @@ export default class Host extends Component {
   requestGuest() {
     this.setState({ lookingForGuest: true });
 
-    const socket = socketIO.connect("http://192.168.0.152:5000");
+    const socket = socketIO.connect("http://192.168.0.153:5000");
 
     socket.on("connection");
     socket.emit("taxiRequest", this.state.routeResponse);
