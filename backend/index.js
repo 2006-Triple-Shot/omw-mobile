@@ -7,20 +7,23 @@ const PORT = process.env.PORT || 5000;
 let guestSocket = null;
 let hostSocket = null;
 let count = 0;
+const obj = { id: "", room: "" };
 io.on("connection", (socket) => {
   count++;
   console.log("-----Backend connected----", count);
   socket.join(["room 237"], () => {
     const rooms = Object.keys(socket.rooms);
+    const val = Object.values(socket.rooms);
     console.log(rooms); // [ <socket.id>, 'room 237']
+    console.log(val); // [ <socket.id>, 'room 237']
   });
 
-  socket.on("hostRequest", (guestlocation) => {
+  socket.on("joinEvent", (guestLocation, count) => {
     guestSocket = socket;
     if (guestSocket !== null) {
       io.to("room 237").emit("start");
-      console.log("Guest wants a host at", guestlocation);
-      console.log("guestSocket");
+      console.log("Guest wants a host at", guestLocation);
+      console.log(guestSocket);
       console.log("*****************");
     }
   });
@@ -35,17 +38,17 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("accepted", (guestLocation) => {
+  socket.on("guestAccepts", (guestLocation, count) => {
     console.log("<<<<<<<<<<DRiver Accepted Backend>>>>>>>", guestLocation);
     if (hostSocket !== null) {
-      hostSocket.emit("accepted", guestLocation);
+      hostSocket.emit("guestAccepts", guestLocation, count);
     }
   });
 
-  socket.on("guestTracking", (guestLocation) => {
+  socket.on("liveTracking", (guestLocation, count) => {
     console.log("<<<<<<<<<<BACKGROUND DRIVER TRACKING >>>>>>>", guestLocation);
     if (hostSocket !== null) {
-      hostSocket.emit("guestTracking", guestLocation);
+      hostSocket.emit("liveTracking", guestLocation, count);
     }
   });
 });

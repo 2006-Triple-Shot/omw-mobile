@@ -15,7 +15,7 @@ import _ from "lodash";
 import socketIO from "socket.io-client";
 import BottomButton from "./BottomButton";
 import polyline from "@mapbox/polyline";
-
+const guestList = {};
 export default class Host extends Component {
   constructor(props) {
     super(props);
@@ -30,7 +30,6 @@ export default class Host extends Component {
       guestIsOnTheWay: false,
       mylocation: {},
       guestLocation: {},
-      guestList: [],
     };
 
     this.onChangeDestinationDebounced = _.debounce(
@@ -105,8 +104,9 @@ export default class Host extends Component {
     socket.on("connection");
     socket.emit("guestRequest", this.state.routeResponse);
 
-    socket.on("accepted", (guestLocation) => {
-      console.log("++++++ACCEPTED++++++++");
+    socket.on("guestAccepts", (guestLocation, Id) => {
+      console.log("ID :", Id);
+      guestList[Id] = guestLocation;
       const pointCoords = [...this.state.pointCoords, guestLocation];
 
       // this.map.fitToCoordinates(pointCoords, {
@@ -117,11 +117,10 @@ export default class Host extends Component {
         guestIsOnTheWay: true,
         guestLocation,
         pointCoords,
-        guestList: [...this.state.guestList, guestLocation],
       });
     });
 
-    socket.on("guestTracking", (guestLocation) => {
+    socket.on("liveTracking", (guestLocation) => {
       const pointCoords = [...this.state.pointCoords, guestLocation];
 
       // this.map.fitToCoordinates(pointCoords, {
@@ -145,16 +144,16 @@ export default class Host extends Component {
     let guestMarker = null;
 
     if (!this.state.latitude) return null;
-    if (this.state.guestList) {
-      guestMarker = this.state.guestList.map((marker) => {
-        <Marker coordinate={marker} key={this.getRandomInt()}>
-          <Image
-            source={require("../images/carIcon.png")}
-            style={{ width: 40, height: 40 }}
-          />
-        </Marker>;
-      });
-    }
+    // if (this.state.guestList) {
+    //   guestMarker = this.state.guestList.map((marker) => {
+    //     <Marker coordinate={marker} key={this.getRandomInt()}>
+    //       <Image
+    //         source={require("../images/carIcon.png")}
+    //         style={{ width: 40, height: 40 }}
+    //       />
+    //     </Marker>;
+    //   });
+    // }
 
     if (this.state.guestIsOnTheWay) {
       guestMarker = (
