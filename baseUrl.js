@@ -1,3 +1,3 @@
-const baseUrl = "https://onmyway-api.herokuapp.com/";
+const baseUrl = "https://onmyway-api.herokuapp.com";
 
 module.exports = baseUrl;

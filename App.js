@@ -1,103 +1,113 @@
-import React, { Component } from "react";
-import {
-  Text,
-  StyleSheet,
-  View,
-  Platform,
-  TouchableWithoutFeedbackBase,
-} from "react-native";
-import LoginForm from "./src/components/LoginForm";
-import axios from "axios";
-import baseURL from "./baseUrl";
-import Apps from "./Apps";
-axios.defaults.baseURL = baseURL;
+// In App.js in a new project
+import Welcome from "./src/components/screens/Welcome";
+import Host from "./src/components/screens/Host";
+import Guest from "./src/components/screens/Guest";
+import FrontPage from "./src/components/screens/FrontPage";
+import Apps from "./Appless";
+import * as React from "react";
+import { StyleSheet, Button, View, Text } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import SplashScreen from "./src/components/screens/Splash";
 
-export default class Login extends Component {
-  constructor() {
-    super();
-    this.state = {
-      email: "",
-      password: "",
-      errorMessage: "",
-      token: "",
-    };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSignIn = this.handleSignIn.bind(this);
-    this.handleSignUp = this.handleSignUp.bind(this);
-  }
-
-  handleChange(name, value) {
-    this.setState({
-      [name]: value,
-    });
-  }
-
-  async handleSignUp() {
-    try {
-      const { email, password } = this.state;
-      await axios.post("/auth/signup", { email, password });
-      this.handleSignIn();
-    } catch (error) {
-      this.setState({ errorMessage: error.response.data.message });
-    }
-  }
-
-  async handleSignIn() {
-    try {
-      this.setState({ errorMessage: "" });
-      const { email, password } = this.state;
-      const result = await axios.post(`${baseURL}auth/login`, {
-        email: this.state.email,
-        password: this.state.password,
-      });
-      const token = `${result.data.token}`;
-      this.setState({ token: token });
-      console.log(this.state.token);
-      alert(token);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  render() {
-    if (this.state.token) {
-      return <Apps token={this.state.token} />;
-    }
-    return (
-      <View style={styles.container}>
-        <Text style={styles.headerText}> On My Way! </Text>
-        <LoginForm
-          email={this.state.email}
-          password={this.state.password}
-          handleChange={this.handleChange}
-          handleSignIn={this.handleSignIn}
-          handleSignUp={this.handleSignUp}
-        />
-
-        <Text style={styles.errorMessage}>{this.state.errorMessage}</Text>
-        <View></View>
-      </View>
-    );
-  }
+function MainScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      {/* <Text>Home Screen</Text> */}
+      <Apps />
+      <Button title="Go to Apps" onPress={() => navigation.navigate("Apps")} />
+    </View>
+  );
 }
 
+function Splash({ navigation }) {
+  return (
+    <View style={styles.container}>
+      {/* <Text>Home Screen</Text> */}
+      <SplashScreen />
+
+      <Button title="Home" onPress={() => navigation.navigate("Home")} />
+    </View>
+  );
+}
+function HomeScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      {/* <Text>Home Screen</Text> */}
+      <Welcome />
+      <Button
+        title="Go to Maps"
+        onPress={() => navigation.navigate("HostDetails")}
+      />
+      <Button
+        title="Go to Guest Maps"
+        onPress={() => navigation.navigate("GuestDetails")}
+      />
+      <Button
+        title="Splash"
+        onPress={() => navigation.navigate("SplashScreen")}
+      />
+      <Button title="Exit" onPress={() => navigation.navigate("GoodBye")} />
+    </View>
+  );
+}
+function HostDetailsScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Text>Details Screen</Text>
+
+      <Host />
+      {/* <Button
+        title="Go to Details... again"
+        onPress={() => navigation.push("Details")}
+      /> */}
+      {/* <Button title="Go to Home" onPress={() => navigation.navigate("Home")} /> */}
+      {/* <Button title="Go back" onPress={() => navigation.goBack()} /> */}
+      {/* <Button
+        title="Go back to first screen in stack"
+        onPress={() => navigation.popToTop()}
+      /> */}
+    </View>
+  );
+}
+function GuestDetailsScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Text>Details Screen</Text>
+      <Guest />
+    </View>
+  );
+}
+
+// function LoginScreen({ navigation }) {
+//   return (
+//     <View style={styles.container}>
+//       <Text>Login</Text>
+//       <LoginScreen />
+//     </View>
+//   );
+// }
+
+const Stack = createStackNavigator();
+
+function Apple() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="SplashScreen" component={Splash} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Apps" component={MainScreen} />
+
+        <Stack.Screen name="HostDetails" component={HostDetailsScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="GoodBye" component={FrontPage} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#55CDFC",
-  },
-  headerText: {
-    fontSize: 44,
-    color: "white",
-    marginTop: 30,
-    textAlign: "center",
-    fontWeight: "700",
-    fontFamily: Platform.OS === "android" ? "sans-serif-light" : undefined,
-  },
-  errorMessage: {
-    marginHorizontal: 10,
-    fontSize: 18,
-    color: "#F5D7CC",
-    fontWeight: "bold",
+    ...StyleSheet.absoluteFillObject,
   },
 });
+export default Apple;

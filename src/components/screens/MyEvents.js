@@ -1,12 +1,6 @@
 import React, { Component } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import axios from "axios";
-const testGet = {
-  headers: {
-    Authorizaton:
-      "eyJhbGciOiJIUzI1NiJ9.TmF5ZWxpX0hlcnpvZzQyQHlhaG9vLmNvbQ.h2BXyk7RBRsI5eQoE7R-iArXxfVBQMlSbXBCIcLRHCg",
-  },
-};
 
 const dummyEvents = [
   {
