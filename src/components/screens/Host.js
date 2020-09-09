@@ -258,7 +258,7 @@ export default class Host extends Component {
           {marker}
           {guestMarker}
         </MapView>
-        <TextInput
+        {/* <TextInput
           placeholder="Enter destination..."
           style={styles.destinationInput}
           value={this.state.destination}
@@ -267,7 +267,7 @@ export default class Host extends Component {
             this.setState({ destination, pointCoords: [] });
             this.onChangeDestinationDebounced(destination);
           }}
-        />
+        /> */}
 
         {predictions}
         {getGuest}

@@ -9,13 +9,17 @@ const Welcome = () => {
 
   return (
     <View style={styles.container}>
-      <Text>Register</Text>
+      <Text>Host</Text>
 
-      <Button title="Sign in now" onPress={show} color="#20f" />
+      <Button
+        title="Create Events | Invite Guests"
+        onPress={show}
+        color="#20f"
+      />
 
       {hasForm && (
         <NativeForms
-          form="https://my.nativeforms.com/YjcLV2aW1jZmUmN3oUM31Db"
+          form="https://my.nativeforms.com/wNy5UUa1jZmUmN3oUM31Db"
           onClose={hide}
         />
       )}
