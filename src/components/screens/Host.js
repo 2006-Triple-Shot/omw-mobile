@@ -10,7 +10,8 @@ import {
   Image,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { apiKey } from "./google-api";
+// import { apiKey } from "./google-api";
+import { apiKey } from "../../../e-apiKey";
 import _ from "lodash";
 import socketIO from "socket.io-client";
 import BottomButton from "./BottomButton";
@@ -258,7 +259,7 @@ export default class Host extends Component {
           {marker}
           {guestMarker}
         </MapView>
-        {/* <TextInput
+        <TextInput
           placeholder="Enter destination..."
           style={styles.destinationInput}
           value={this.state.destination}
@@ -267,7 +268,7 @@ export default class Host extends Component {
             this.setState({ destination, pointCoords: [] });
             this.onChangeDestinationDebounced(destination);
           }}
-        /> */}
+        />
 
         {predictions}
         {getGuest}

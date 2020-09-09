@@ -20,7 +20,7 @@ export default class App extends Component {
     this.state = {
       isGuest: false,
       isHost: false,
-      isApple: false,
+      showLogin: true,
     };
   }
   componentDidMount() {
@@ -30,6 +30,9 @@ export default class App extends Component {
     this.setState({ hasToken: true });
   }
   render() {
+    // if (this.state.showLogin) {
+    //   return <Login />;
+    // }
     if (this.state.isGuest) {
       return <Guest />;
     }
