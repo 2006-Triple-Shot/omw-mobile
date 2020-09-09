@@ -12,6 +12,7 @@ import Welcome from "./src/components/screens/Welcome";
 
 import * as Location from "expo-location";
 import Constants from "expo-constants";
+import MyEvents from "./src/components/screens/MyEvents";
 
 export default class App extends Component {
   constructor(props) {
@@ -20,6 +21,7 @@ export default class App extends Component {
       isGuest: false,
       isHost: false,
       hasToken: false,
+      myEventsShow: false,
     };
   }
   componentDidMount() {
@@ -37,6 +39,10 @@ export default class App extends Component {
       return <Host />;
     }
 
+    if (this.state.myEventsShow) {
+      return <MyEvents />;
+    }
+
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.separator}>
@@ -48,7 +54,10 @@ export default class App extends Component {
             title="Guest"
             onPress={() => this.setState({ isGuest: true })}
           />
-
+          <Button
+            title="MyEvents"
+            onPress={() => this.setState({ myEventsShow: true })}
+          />
           {/* <Welcome /> */}
         </View>
       </SafeAreaView>

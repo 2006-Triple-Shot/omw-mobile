@@ -8,22 +8,44 @@ const testGet = {
   },
 };
 
+const dummyEvents = [
+  {
+    title: "back",
+    date: "2020-10-22",
+    description:
+      "Distinctio aliquam mollitia. Velit autem vel adipisci blanditiis et doloremque. ",
+  },
+  {
+    title: "Gourde",
+    date: "2021-03-18",
+
+    description:
+      "Amet consequatur omnis odio ut. At unde est corporis ea incidunt deleniti perferendis et commodi.",
+  },
+  {
+    title: "deposit",
+    date: "2021-04-28",
+
+    description: "Doloribus architecto non nesciunt unde.",
+  },
+];
+
 export default class MyEvents extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      events: [],
+      events: [...dummyEvents],
     };
   }
 
-  componentDidMount() {
-    this.getEvents();
+  async componentDidMount() {
+    // await this.getEvents();
   }
   async getEvents() {
     try {
       const events = await axios.get(
         "https://onmyway-api.herokuapp.com/api/users/test/events",
-        testGet
+        testGet.headers
       );
       this.setState({ events: events });
     } catch (err) {
@@ -33,13 +55,22 @@ export default class MyEvents extends Component {
   render() {
     return (
       <View style={styles.container}>
-        {this.state.events.map((event) => {
-          <View style={styles.event}>
-            <Text style={styles.textBox}>{event.title}</Text>
-            <Text style={styles.textBox}>{event.date}</Text>
-            <Text style={styles.textBox}>{event.description}</Text>
-          </View>;
-        })}
+        <View>
+          <Text style={styles.heading}>My Events</Text>
+        </View>
+
+        <View style={styles.event}>
+          {this.state.events
+            ? this.state.events.map((event, index) => {
+                return (
+                  <View key={index} style={styles.textBox}>
+                    <Text>{event.title}</Text>
+                    <Text>{event.date}</Text>
+                  </View>
+                );
+              })
+            : null}
+        </View>
       </View>
     );
   }
@@ -48,16 +79,26 @@ export default class MyEvents extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#00B8FF",
     alignItems: "center",
     justifyContent: "center",
   },
+  heading: {
+    fontSize: 44,
+    textAlign: "center",
+    color: "black",
+    marginTop: 10,
+    marginBottom: 100,
+    fontWeight: "200",
+  },
   event: {
+    flex: 0.5,
     backgroundColor: "#00B8FF",
     alignItems: "center",
     justifyContent: "center",
   },
   textBox: {
+    flex: 0.5,
     backgroundColor: "#fff",
     padding: 5,
     fontSize: 18,
@@ -69,7 +110,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
+    color: "black",
   },
 });
-
-export default MyEvents;
