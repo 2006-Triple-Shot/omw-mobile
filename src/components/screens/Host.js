@@ -10,7 +10,8 @@ import {
   Image,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { apiKey } from "./google-api";
+// import { apiKey } from "./google-api";
+import { apiKey } from "../../../secret";
 import _ from "lodash";
 import socketIO from "socket.io-client";
 import BottomButton from "./BottomButton";
