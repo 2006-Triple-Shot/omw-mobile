@@ -213,11 +213,11 @@ export default class Guest extends Component {
           }}
           showsUserLocation={true}
         >
-          <Polyline
+          {/* <Polyline
             coordinates={this.state.pointCoords}
             strokeWidth={2}
             strokeColor="red"
-          />
+          /> */}
           {endMarker}
           {startMarker}
         </MapView>

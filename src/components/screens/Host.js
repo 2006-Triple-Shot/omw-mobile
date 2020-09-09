@@ -236,12 +236,12 @@ export default class Host extends Component {
           }}
           showsUserLocation={true}
         >
-          <Polyline
+          {/* <Polyline
             key={this.getRandomInt()}
             coordinates={this.state.pointCoords}
             strokeWidth={1}
             strokeColor="red"
-          />
+          /> */}
           {drivers.map((driver) => (
             <MapView.Marker
               coordinate={driver}
