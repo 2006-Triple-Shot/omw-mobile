@@ -1,73 +1,88 @@
-import React, { Component } from "react";
-import {
-  StyleSheet,
-  Button,
-  View,
-  SafeAreaView,
-  TouchableOpacity,
-} from "react-native";
-import Guest from "./src/components/screens/Guest";
-import Host from "./src/components/screens/Host";
+// In App.js in a new project
 import Welcome from "./src/components/screens/Welcome";
+import Host from "./src/components/screens/Host";
+import Guest from "./src/components/screens/Guest";
+import FrontPage from "./src/components/screens/FrontPage";
+import Apps from "./Apps";
+import * as React from "react";
+import { StyleSheet, Button, View, Text } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 
-import * as Location from "expo-location";
-import Constants from "expo-constants";
+function MainScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      {/* <Text>Home Screen</Text> */}
+      <Apps />
+      <Button title="Go to Apps" onPress={() => navigation.navigate("Apps")} />
+    </View>
+  );
+}
 
-export default class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isGuest: false,
-      isHost: false,
-      hasToken: false,
-    };
-  }
-  componentDidMount() {
-    Location.requestPermissionsAsync();
-  }
-  click() {
-    this.setState({ hasToken: true });
-  }
-  render() {
-    if (this.state.isGuest) {
-      return <Guest />;
-    }
+function HomeScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      {/* <Text>Home Screen</Text> */}
+      <Welcome />
+      <Button
+        title="Go to Maps"
+        onPress={() => navigation.navigate("HostDetails")}
+      />
+      <Button
+        title="Go to Guest Maps"
+        onPress={() => navigation.navigate("GuestDetails")}
+      />
+      <Button title="Exit" onPress={() => navigation.navigate("GoodBye")} />
+    </View>
+  );
+}
 
-    if (this.state.isHost) {
-      return <Host />;
-    }
+function HostDetailsScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Text>Details Screen</Text>
 
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.separator}>
-          <Button
-            title="Host"
-            onPress={() => this.setState({ isHost: true })}
-          />
-          <Button
-            title="Guest"
-            onPress={() => this.setState({ isGuest: true })}
-          />
+      <Host />
+      {/* <Button
+        title="Go to Details... again"
+        onPress={() => navigation.push("Details")}
+      /> */}
+      {/* <Button title="Go to Home" onPress={() => navigation.navigate("Home")} /> */}
+      {/* <Button title="Go back" onPress={() => navigation.goBack()} /> */}
+      {/* <Button
+        title="Go back to first screen in stack"
+        onPress={() => navigation.popToTop()}
+      /> */}
+    </View>
+  );
+}
+function GuestDetailsScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Text>Details Screen</Text>
+      <Guest />
+    </View>
+  );
+}
+const Stack = createStackNavigator();
 
-          {/* <Welcome /> */}
-        </View>
-      </SafeAreaView>
-    );
-  }
+function Apple() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Apps" component={MainScreen} />
+
+        <Stack.Screen name="HostDetails" component={HostDetailsScreen} />
+        <Stack.Screen name="GuestDetails" component={GuestDetailsScreen} />
+        <Stack.Screen name="GoodBye" component={FrontPage} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    flexDirection: "column",
-    marginTop: Constants.statusBarHeight,
-    marginHorizontal: 16,
-  },
-
-  separator: {
-    marginVertical: 28,
-    borderBottomColor: "#737373",
-    justifyContent: "space-between",
-    flexDirection: "row",
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    ...StyleSheet.absoluteFillObject,
   },
 });
+export default Apple;
