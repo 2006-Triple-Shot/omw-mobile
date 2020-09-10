@@ -1,28 +1,29 @@
 import React, { Component } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import axios from "axios";
+import baseUrl from "../../../baseUrl";
 
-const dummyEvents = [
-  {
-    title: "back",
-    date: "2020-10-22",
-    description:
-      "Distinctio aliquam mollitia. Velit autem vel adipisci blanditiis et doloremque. ",
-  },
-  {
-    title: "Gourde",
-    date: "2021-03-18",
+// const dummyEvents = [
+//   {
+//     title: "back",
+//     date: "2020-10-22",
+//     description:
+//       "Distinctio aliquam mollitia. Velit autem vel adipisci blanditiis et doloremque. ",
+//   },
+//   {
+//     title: "Gourde",
+//     date: "2021-03-18",
 
-    description:
-      "Amet consequatur omnis odio ut. At unde est corporis ea incidunt deleniti perferendis et commodi.",
-  },
-  {
-    title: "deposit",
-    date: "2021-04-28",
+//     description:
+//       "Amet consequatur omnis odio ut. At unde est corporis ea incidunt deleniti perferendis et commodi.",
+//   },
+//   {
+//     title: "deposit",
+//     date: "2021-04-28",
 
-    description: "Doloribus architecto non nesciunt unde.",
-  },
-];
+//     description: "Doloribus architecto non nesciunt unde.",
+//   },
+// ];
 
 export default class MyEvents extends Component {
   constructor(props) {
@@ -33,19 +34,20 @@ export default class MyEvents extends Component {
   }
 
   async componentDidMount() {
-    // await this.getEvents();
+    const test = await populateArrayWithEventData();
+    console.log("test", test);
   }
-  async getEvents() {
-    try {
-      const events = await axios.get(
-        "https://onmyway-api.herokuapp.com/api/users/test/events",
-        testGet.headers
-      );
-      this.setState({ events: events });
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  // async getEvents() {
+  //   try {
+  //     const events = await axios.get(
+  //       "https://onmyway-api.herokuapp.com/api/users/test/events",
+  //       testGet.headers
+  //     );
+  //     this.setState({ events: events });
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // }
   render() {
     return (
       <View style={styles.container}>
