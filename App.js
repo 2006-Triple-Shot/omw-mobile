@@ -1,103 +1,65 @@
-import React, { Component } from "react";
-import {
-  Text,
-  StyleSheet,
-  View,
-  Platform,
-  TouchableWithoutFeedbackBase,
-} from "react-native";
-import LoginForm from "./src/components/LoginForm";
-import axios from "axios";
-import baseURL from "./baseUrl";
+// In App.js in a new project
+import Welcome from "./src/components/screens/Welcome";
+import Host from "./src/components/screens/Host";
+import Guest from "./src/components/screens/Guest";
+import FrontPage from "./src/components/screens/FrontPage";
 import Apps from "./Apps";
-axios.defaults.baseURL = baseURL;
+import Login from "./Login";
 
-export default class Login extends Component {
-  constructor() {
-    super();
-    this.state = {
-      email: "",
-      password: "",
-      errorMessage: "",
-      token: "",
-    };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSignIn = this.handleSignIn.bind(this);
-    this.handleSignUp = this.handleSignUp.bind(this);
-  }
+import * as React from "react";
+import { StyleSheet, Button, View, Text } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 
-  handleChange(name, value) {
-    this.setState({
-      [name]: value,
-    });
-  }
-
-  async handleSignUp() {
-    try {
-      const { email, password } = this.state;
-      await axios.post("/auth/signup", { email, password });
-      this.handleSignIn();
-    } catch (error) {
-      this.setState({ errorMessage: error.response.data.message });
-    }
-  }
-
-  async handleSignIn() {
-    try {
-      this.setState({ errorMessage: "" });
-      const { email, password } = this.state;
-      const result = await axios.post(`${baseURL}auth/login`, {
-        email: this.state.email,
-        password: this.state.password,
-      });
-      const token = `${result.data.token}`;
-      this.setState({ token: token });
-      console.log(this.state.token);
-      alert(token);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  render() {
-    if (this.state.token) {
-      return <Apps token={this.state.token} />;
-    }
-    return (
-      <View style={styles.container}>
-        <Text style={styles.headerText}> On My Way! </Text>
-        <LoginForm
-          email={this.state.email}
-          password={this.state.password}
-          handleChange={this.handleChange}
-          handleSignIn={this.handleSignIn}
-          handleSignUp={this.handleSignUp}
-        />
-
-        <Text style={styles.errorMessage}>{this.state.errorMessage}</Text>
-        <View></View>
-      </View>
-    );
-  }
+function HomeScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Login />
+      <Button
+        color="black"
+        title="Go to Events Page"
+        onPress={() => navigation.navigate("Welcome")}
+      />
+    </View>
+  );
+}
+function DetailScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Welcome />
+      <Button title="Go back" onPress={() => navigation.goBack()} />
+    </View>
+  );
 }
 
+const Stack = createStackNavigator();
+
+function Apple() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          options={{
+            headerStyle: {
+              backgroundColor: "#f6bd60",
+            },
+          }}
+          name="Login"
+          component={HomeScreen}
+        />
+        <Stack.Screen name="Welcome" component={DetailScreen} />
+        {/* <Stack.Screen name="Apps" component={MainScreen} />
+
+        <Stack.Screen name="HostDetails" component={HostDetailsScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} /> */}
+        {/* <Stack.Screen name="GoodBye" component={FrontPage} /> */}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#55CDFC",
-  },
-  headerText: {
-    fontSize: 44,
-    color: "white",
-    marginTop: 30,
-    textAlign: "center",
-    fontWeight: "700",
-    fontFamily: Platform.OS === "android" ? "sans-serif-light" : undefined,
-  },
-  errorMessage: {
-    marginHorizontal: 10,
-    fontSize: 18,
-    color: "#F5D7CC",
-    fontWeight: "bold",
+    ...StyleSheet.absoluteFillObject,
   },
 });
+export default Apple;

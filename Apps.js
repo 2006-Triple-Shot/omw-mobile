@@ -34,29 +34,29 @@ export default class App extends Component {
     //   return <Login />;
     // }
     if (this.state.isGuest) {
-      return <Guest />;
+      user = <Guest />;
     }
 
     if (this.state.isHost) {
-      return <Host />;
+      user = <Host />;
     }
 
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.separator}>
-          <Button
-            title="Host"
-            onPress={() => this.setState({ isHost: true })}
-          />
-          <Button
-            title="Guest"
-            onPress={() => this.setState({ isGuest: true })}
-          />
+    // return (
+    //   <SafeAreaView style={styles.container}>
+    //     <View style={styles.separator}>
+    //       <Button
+    //         title="Host"
+    //         onPress={() => this.setState({ isHost: true })}
+    //       />
+    //       <Button
+    //         title="Guest"
+    //         onPress={() => this.setState({ isGuest: true })}
+    //       />
 
-          {/* <Welcome /> */}
-        </View>
-      </SafeAreaView>
-    );
+    //       {/* <Welcome /> */}
+    //     </View>
+    //   </SafeAreaView>
+    // );
   }
 }
 const styles = StyleSheet.create({

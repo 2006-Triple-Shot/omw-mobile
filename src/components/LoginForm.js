@@ -14,10 +14,10 @@ export default class LoginForm extends Component {
   render() {
     return (
       <SafeAreaView>
-        <View>
+        <View style={styles.conatainer}>
           <TextInput
             style={styles.input}
-            placeholder="your@email.com"
+            placeholder="username@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -35,46 +35,55 @@ export default class LoginForm extends Component {
             value={this.props.password}
             onChangeText={(pw) => this.props.handleChange("password", pw)}
           />
-          <TouchableOpacity
-            onPress={this.props.handleSignIn}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Sign in</Text>
+          <TouchableOpacity onPress={this.props.handleSignIn}>
+            <Text style={styles.text}>Sign in</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={this.props.handleSignUp}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Create account</Text>
+          <TouchableOpacity onPress={this.props.handleSignUp}>
+            <Text style={styles.text}>Register</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#3A3743",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+
+  text: {
+    fontSize: 20,
+    height: 40,
+    color: "#f6bd60",
+    fontWeight: "bold",
+    textAlign: "center",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: "black",
+    marginBottom: 10,
+    padding: 10,
+    justifyContent: "center",
+    flexDirection: "row",
+    width: 110,
+    alignContent: "center",
+    alignSelf: "center",
+    marginTop: 10,
   },
   input: {
     height: 40,
-    backgroundColor: "#E9D7C7",
+
+    alignSelf: "center",
+
+    fontSize: 15,
+    width: 300,
+    backgroundColor: "#faf3dd",
+    // backgroundColor: "#FFFFFF50",
     padding: 10,
-    color: "black",
+    color: "#e9c46a",
     marginBottom: 10,
-  },
-  button: {
-    backgroundColor: "black",
-    paddingVertical: 20,
-    marginVertical: 10,
-  },
-  buttonText: {
-    textAlign: "center",
-    fontSize: 23,
-    color: "white",
-    fontWeight: "500",
-    fontFamily: Platform.OS === "android" ? "sans-serif-light" : undefined,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    justifyContent: "center",
+    flexDirection: "row",
   },
 });
