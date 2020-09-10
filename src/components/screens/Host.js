@@ -161,7 +161,7 @@ export default class Host extends Component {
       guestMarker = (
         <Marker coordinate={this.state.guestLocation} key={this.getRandomInt()}>
           <Image
-            source={require("../images/carIcon.png")}
+            source={require("../images/person.png")}
             style={{ width: 40, height: 40 }}
           />
         </Marker>
@@ -249,7 +249,7 @@ export default class Host extends Component {
               key={this.getRandomInt()}
             >
               <Image
-                source={require("../images/carIcon.png")}
+                source={require("../images/person.png")}
                 style={{ width: 40, height: 40 }}
               />
             </MapView.Marker>
