@@ -1,88 +1,240 @@
-// In App.js in a new project
-import Welcome from "./src/components/screens/Welcome";
-import Host from "./src/components/screens/Host";
-import Guest from "./src/components/screens/Guest";
-import FrontPage from "./src/components/screens/FrontPage";
-import Apps from "./Apps";
-import * as React from "react";
-import { StyleSheet, Button, View, Text } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import React, { Component } from "react";
+import {
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Platform,
+  Alert,
+  Image,
+  SafeAreaView,
+  ImageBackground,
+} from "react-native";
+import baseUrl from "./baseUrl";
+import axios from "axios";
+import Apple from "./notApp.js";
 
-function MainScreen({ navigation }) {
-  return (
-    <View style={styles.container}>
-      {/* <Text>Home Screen</Text> */}
-      <Apps />
-      <Button title="Go to Apps" onPress={() => navigation.navigate("Apps")} />
-    </View>
-  );
+export default class Login extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      userId: 0,
+      email: "",
+      token: "",
+      user: {},
+      isHost: false,
+      isGuest: true,
+      loggedIn: false,
+      userEvents: [],
+      userContacts: [],
+    };
+    this.populateArrayWithEventData = this.populateArrayWithEventData.bind(
+      this
+    );
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSignIn = this.handleSignIn.bind(this);
+    this.handleSignUp = this.handleSignUp.bind(this);
+    // this.getUser = this.getUser.bind(this);
+  }
+
+  handleChange(name, value) {
+    this.setState({
+      [name]: value,
+    });
+  }
+
+  async handleSignUp() {
+    try {
+      const { email, password } = this.state;
+      await axios.post("/auth/signup", { email, password });
+      this.handleSignIn();
+    } catch (error) {
+      this.setState({ errorMessage: error.response.data.message });
+    }
+  }
+
+  async handleSignIn() {
+    try {
+      const { email, password } = this.state;
+      const result = await axios.post(`${baseUrl}/auth/login`, {
+        email: email,
+        password: password,
+      });
+      console.log(email, password);
+      const token = await result.data.token;
+      this.setState({ token: token });
+      const user = await this.getUser();
+      console.log("Got user ? ", user);
+
+      // this.setState({ user: userObj });
+      // console.log(userObj);
+    } catch (error) {
+      console.log(error, "FUCK");
+    }
+  }
+
+  // async getUser() {
+  //   try {
+  //     const config = {
+  //       headers: {
+  //         Authorizaton: this.state.token,
+  //       },
+  //     };
+  //     console.log("Tryna get user");
+  //     console.log("token should be here: " + config.headers.Authorizaton);
+  //     const user = await axios.get(
+  //       `${baseUrl}/api/users/${this.state.email}`,
+  //       config.headers
+  //     );
+  //     console.log("Got user!!");
+  //   } catch (err) {
+  //     console.log(
+  //       err,
+  //       "I THOUGHT I ALREADY FUCKING FIXED THIS SHIT FUCK I WANNA GRADUATE"
+  //     );
+  //   }
+  // }
+
+  async populateArrayWithEventData() {
+    try {
+      const events = await axios.get(`${baseUrl}/api/users/test/events`, {
+        headers: {
+          Authorizaton: `${this.state.token}`,
+        },
+      });
+      const results = [...events];
+      return results;
+    } catch (err) {
+      console.log(err, "It failed");
+    }
+  }
+
+  render() {
+    return (
+      <SafeAreaView style={styles.container}>
+        {this.state.loggedIn ? (
+          <Apple />
+        ) : (
+          <ImageBackground
+            source={{
+              uri:
+                "https://images.unsplash.com/photo-1597702822474-6dc92016e35d?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+            }}
+            style={styles.image}
+          >
+            <View>
+              <Text style={styles.headerText}>On My Way</Text>
+              <SafeAreaView>
+                <View>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="your@email.com"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholderTextColor="black"
+                    value={this.state.email}
+                    onChangeText={(email) => this.handleChange("email", email)}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    secureTextEntry
+                    placeholder="Password"
+                    placeholderTextColor="black"
+                    value={this.state.password}
+                    onChangeText={(pw) => this.handleChange("password", pw)}
+                  />
+                  <TouchableOpacity
+                    onPress={this.handleSignIn}
+                    style={styles.button}
+                  >
+                    <Text style={styles.buttonText}>Sign in</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={this.handleSignUp}
+                    style={styles.button}
+                  >
+                    <Text style={styles.buttonText}>Register</Text>
+                  </TouchableOpacity>
+                </View>
+              </SafeAreaView>
+              <Text style={styles.errorMessage}>{this.state.errorMessage}</Text>
+            </View>
+          </ImageBackground>
+        )}
+      </SafeAreaView>
+    );
+  }
 }
 
-function HomeScreen({ navigation }) {
-  return (
-    <View style={styles.container}>
-      {/* <Text>Home Screen</Text> */}
-      <Welcome />
-      <Button
-        title="Go to Maps"
-        onPress={() => navigation.navigate("HostDetails")}
-      />
-      <Button
-        title="Go to Guest Maps"
-        onPress={() => navigation.navigate("GuestDetails")}
-      />
-      <Button title="Exit" onPress={() => navigation.navigate("GoodBye")} />
-    </View>
-  );
-}
-
-function HostDetailsScreen({ navigation }) {
-  return (
-    <View style={styles.container}>
-      <Text>Details Screen</Text>
-
-      <Host />
-      {/* <Button
-        title="Go to Details... again"
-        onPress={() => navigation.push("Details")}
-      /> */}
-      {/* <Button title="Go to Home" onPress={() => navigation.navigate("Home")} /> */}
-      {/* <Button title="Go back" onPress={() => navigation.goBack()} /> */}
-      {/* <Button
-        title="Go back to first screen in stack"
-        onPress={() => navigation.popToTop()}
-      /> */}
-    </View>
-  );
-}
-function GuestDetailsScreen({ navigation }) {
-  return (
-    <View style={styles.container}>
-      <Text>Details Screen</Text>
-      <Guest />
-    </View>
-  );
-}
-const Stack = createStackNavigator();
-
-function Apple() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Apps" component={MainScreen} />
-
-        <Stack.Screen name="HostDetails" component={HostDetailsScreen} />
-        <Stack.Screen name="GuestDetails" component={GuestDetailsScreen} />
-        <Stack.Screen name="GoodBye" component={FrontPage} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    flex: 1,
+    flexDirection: "column",
+    backgroundColor: "black",
   },
+  image: {
+    flex: 1,
+    resizeMode: "cover",
+    justifyContent: "center",
+  },
+  headerText: {
+    fontSize: 20,
+    height: 40,
+    color: "#f6bd60",
+    fontWeight: "bold",
+    textAlign: "center",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: "black",
+    marginBottom: 10,
+    padding: 10,
+    justifyContent: "center",
+    flexDirection: "row",
+    width: 120,
+    alignContent: "center",
+    alignSelf: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    fontSize: 20,
+    height: 40,
+    color: "#f6bd60",
+    fontWeight: "bold",
+    textAlign: "center",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: "black",
+    marginBottom: 10,
+    padding: 10,
+    justifyContent: "center",
+    flexDirection: "row",
+    width: 110,
+    alignContent: "center",
+    alignSelf: "center",
+    marginTop: 10,
+  },
+  input: {
+    height: 40,
+    alignSelf: "center",
+    fontSize: 15,
+    width: 300,
+    backgroundColor: "#faf3dd",
+    // backgroundColor: "#FFFFFF50",
+    padding: 10,
+    color: "black",
+    marginBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+
+  // buttonText: {
+  //   textAlign: "center",
+  //   fontSize: 16,
+  //   color: "#fff",
+  //   fontWeight: "500",
+  //   fontFamily: Platform.OS === "android" ? "sans-serif-light" : undefined,
+  // },
 });
-export default Apple;
