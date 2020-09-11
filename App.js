@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import baseUrl from "./baseUrl";
 import axios from "axios";
-import Apple from "./notApp.js";
+import Apple from "./manikaApp.js";
 
 export default class Login extends Component {
   constructor(props) {
