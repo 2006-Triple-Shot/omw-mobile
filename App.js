@@ -38,6 +38,12 @@ export default class Login extends Component {
     this.getUser = this.getUser.bind(this);
   }
 
+  componentDidMount() {
+    if (this.state.loggedIn) {
+
+    }
+  }
+
   handleChange(name, value) {
     this.setState({
       [name]: value,
@@ -65,10 +71,7 @@ export default class Login extends Component {
       this.setState({ token: token });
       const user = await this.getUser();
       console.log("Got user ? ", user.data);
-      this.setState({
-        user: user.data,
-        isHost: user.data.isHost
-      });
+
     } catch (error) {
       console.log(error, "FUCK");
     }
@@ -86,6 +89,11 @@ export default class Login extends Component {
         `${baseUrl}/api/users/${this.state.email}`,
         config
       );
+      this.setState({
+        user: user.data,
+        isHost: user.data.isHost,
+        loggedIn: true
+      });
       return user
     } catch (err) {
       console.log(err, "AXIOS PLS");
@@ -107,11 +115,11 @@ export default class Login extends Component {
   }
 
   render() {
+    if (this.state.loggedIn) {
+      return (<Apple/>)
+    }
     return (
       <SafeAreaView style={styles.container}>
-        {this.state.loggedIn ? (
-          <Apple />
-        ) : (
           <ImageBackground
             source={{
               uri:
@@ -160,9 +168,9 @@ export default class Login extends Component {
               <Text style={styles.errorMessage}>{this.state.errorMessage}</Text>
             </View>
           </ImageBackground>
-        )}
-      </SafeAreaView>
-    );
+
+      </SafeAreaView>)
+
   }
 }
 
