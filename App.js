@@ -35,7 +35,13 @@ export default class Login extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleSignIn = this.handleSignIn.bind(this);
     this.handleSignUp = this.handleSignUp.bind(this);
-    // this.getUser = this.getUser.bind(this);
+    this.getUser = this.getUser.bind(this);
+  }
+
+  componentDidMount() {
+    if (this.state.loggedIn) {
+
+    }
   }
 
   handleChange(name, value) {
@@ -61,40 +67,38 @@ export default class Login extends Component {
         email: email,
         password: password,
       });
-      console.log(email, password);
       const token = await result.data.token;
       this.setState({ token: token });
       const user = await this.getUser();
-      console.log("Got user ? ", user);
+      console.log("Got user ? ", user.data);
 
-      // this.setState({ user: userObj });
-      // console.log(userObj);
     } catch (error) {
       console.log(error, "FUCK");
     }
   }
 
-  // async getUser() {
-  //   try {
-  //     const config = {
-  //       headers: {
-  //         Authorizaton: this.state.token,
-  //       },
-  //     };
-  //     console.log("Tryna get user");
-  //     console.log("token should be here: " + config.headers.Authorizaton);
-  //     const user = await axios.get(
-  //       `${baseUrl}/api/users/${this.state.email}`,
-  //       config.headers
-  //     );
-  //     console.log("Got user!!");
-  //   } catch (err) {
-  //     console.log(
-  //       err,
-  //       "I THOUGHT I ALREADY FUCKING FIXED THIS SHIT FUCK I WANNA GRADUATE"
-  //     );
-  //   }
-  // }
+  async getUser() {
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `${this.state.token}`,
+        },
+      };
+      const user = await axios.get(
+        `${baseUrl}/api/users/${this.state.email}`,
+        config
+      );
+      this.setState({
+        user: user.data,
+        isHost: user.data.isHost,
+        loggedIn: true
+      });
+      return user
+    } catch (err) {
+      console.log(err, "AXIOS PLS");
+    }
+  }
 
   async populateArrayWithEventData() {
     try {
@@ -111,11 +115,11 @@ export default class Login extends Component {
   }
 
   render() {
+    if (this.state.loggedIn) {
+      return (<Apple/>)
+    }
     return (
       <SafeAreaView style={styles.container}>
-        {this.state.loggedIn ? (
-          <Apple />
-        ) : (
           <ImageBackground
             source={{
               uri:
@@ -135,7 +139,7 @@ export default class Login extends Component {
                     autoCorrect={false}
                     placeholderTextColor="black"
                     value={this.state.email}
-                    onChangeText={(email) => this.handleChange("email", email)}
+                    onChangeText={email => this.handleChange("email", email)}
                   />
                   <TextInput
                     style={styles.input}
@@ -145,7 +149,7 @@ export default class Login extends Component {
                     placeholder="Password"
                     placeholderTextColor="black"
                     value={this.state.password}
-                    onChangeText={(pw) => this.handleChange("password", pw)}
+                    onChangeText={pw => this.handleChange("password", pw)}
                   />
                   <TouchableOpacity
                     onPress={this.handleSignIn}
@@ -164,9 +168,9 @@ export default class Login extends Component {
               <Text style={styles.errorMessage}>{this.state.errorMessage}</Text>
             </View>
           </ImageBackground>
-        )}
-      </SafeAreaView>
-    );
+
+      </SafeAreaView>)
+
   }
 }
 
