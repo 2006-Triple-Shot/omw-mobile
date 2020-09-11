@@ -19,12 +19,11 @@ TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
   }
   if (data) {
     const { locations } = data;
-    count++;
     socket.emit("liveTracking", {
       latitude: locations[0].coords.latitude,
       longitude: locations[0].coords.longitude,
     });
-    console.log(connected);
+    console.log("connected");
   }
 });
 
