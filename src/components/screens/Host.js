@@ -3,7 +3,9 @@ import {
   StyleSheet,
   Text,
   View,
+  TextInput,
   TouchableHighlight,
+  Keyboard,
   ActivityIndicator,
   Image,
 } from "react-native";
@@ -12,7 +14,18 @@ import { apiKey } from "./google-api";
 import _ from "lodash";
 import socketIO from "socket.io-client";
 import BottomButton from "./BottomButton";
+import polyline from "@mapbox/polyline";
 
+const dummyData = {
+  1: { latitude: 37.38723661, longitude: -120.15426073 },
+  2: { latitude: 38.38723661, longitude: -118.15426073 },
+  3: { latitude: 39.38723661, longitude: -116.15426073 },
+  4: { latitude: 40.38723661, longitude: -122.15426073 },
+  5: { latitude: 41.38723661, longitude: -124.15426073 },
+  6: { latitude: 42.38723661, longitude: -126.15426073 },
+  7: { latitude: 43.38723661, longitude: -128.15426073 },
+  8: { latitude: 44.38723661, longitude: -130.15426073 },
+};
 export default class Host extends Component {
   constructor(props) {
     super(props);
@@ -34,6 +47,7 @@ export default class Host extends Component {
       this.onChangeDestination,
       1000
     );
+    // this.getRouteDirections = this.getRouteDirections.bind(this);
   }
 
   componentWillUnmount() {
@@ -52,9 +66,33 @@ export default class Host extends Component {
     );
   }
 
+  // async getRouteDirections(destinationPlaceId, destinationName) {
+  //   try {
+  //     const response = await fetch(
+  //       `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}&destination=place_id:${destinationPlaceId}&key=${apiKey}`
+  //     );
+
+  //     const json = await response.json();
+
+  //     const points = polyline.decode(json.routes[0].overview_polyline.points);
+  //     const pointCoords = points.map((point) => {
+  //       return { latitude: point[0], longitude: point[1] };
+  //     });
+  //     this.setState({
+  //       pointCoords,
+  //       routeResponse: json,
+  //     });
+  //     Keyboard.dismiss();
+  //     return destinationName;
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // }
+
   async onChangeDestination(destination) {
     const apiUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=${apiKey}
     &input=${destination}&location=${this.state.latitude},${this.state.longitude}&radius=2000`;
+
     try {
       const result = await fetch(apiUrl);
       const json = await result.json();
@@ -82,6 +120,9 @@ export default class Host extends Component {
       this.state.guestList[Id] = guestLocation;
       const pointCoords = [...this.state.pointCoords, guestLocation];
 
+      // this.map.fitToCoordinates(pointCoords, {
+      //   edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      // });
       this.setState({
         lookingForGuest: false,
         guestIsOnTheWay: true,
@@ -93,12 +134,18 @@ export default class Host extends Component {
     socket.on("liveTracking", (guestLocation, Id) => {
       const pointCoords = [...this.state.pointCoords, guestLocation];
       this.state.guestList[Id] = guestLocation;
+
+      // this.map.fitToCoordinates(pointCoords, {
+      //   edgePadding: { top: 140, bottom: 20, left: 20, right: 20 },
+      // });
       this.setState({
         lookingForGuest: false,
         guestIsOnTheWay: true,
         guestLocation,
         pointCoords,
       });
+
+      // this.onChangeDestinationDebounced(guestLocation);
     });
   }
 
@@ -110,7 +157,20 @@ export default class Host extends Component {
     let guestMarker2 = null;
     let guestMarker3 = null;
     const drivers = Object.values(this.state.guestList);
+    // const drivers = this.state.pointCoords;
     if (!this.state.latitude) return null;
+
+    // if (this.state.guestIsOnTheWay) {
+    //   guestMarker = (
+    //     <Marker coordinate={this.state.guestLocation} key={this.getRandomInt()}>
+    //       <Image
+    //         source={require("../images/person.png")}
+    //         style={{ width: 40, height: 40 }}
+    //       />
+    //     </Marker>
+    //   );
+    // }
+
     if (this.state.guestIsOnTheWay) {
       guestMarker1 = (
         <Marker coordinate={drivers[0]} key={this.getRandomInt()}>
@@ -137,11 +197,22 @@ export default class Host extends Component {
         </Marker>
       );
     }
+
     if (this.state.lookingForGuest) {
       findingGuestActIndicator = (
         <ActivityIndicator
           size="large"
           animating={this.state.lookingForGuest}
+        />
+      );
+    }
+
+    if (this.state.pointCoords.length > 1) {
+      //added =
+      marker = (
+        <Marker
+          key={this.getRandomInt()}
+          coordinate={this.state.pointCoords[this.state.pointCoords.length - 1]}
         />
       );
     }
@@ -165,6 +236,9 @@ export default class Host extends Component {
             prediction.structured_formatting.main_text
           );
           this.setState({ predictions: [], destination: destinationName });
+          // this.map.fitToCoordinates(this.state.pointCoords, {
+          //   edgePadding: { top: 20, bottom: 20, left: 20, right: 20 },
+          // });
         }}
         key={this.getRandomInt()}
       >
@@ -192,10 +266,42 @@ export default class Host extends Component {
           }}
           showsUserLocation={true}
         >
+          {/* <Polyline
+            key={this.getRandomInt()}
+            coordinates={this.state.pointCoords}
+            strokeWidth={1}
+            strokeColor="red"
+          /> */}
+          {/* {drivers.map((driver) => (
+            <MapView.Marker
+              coordinate={driver}
+              title="guest"
+              key={this.getRandomInt()}
+            >
+              <Image
+                source={require("../images/person-marker.png")}
+                style={{ width: 40, height: 40 }}
+              />
+            </MapView.Marker>
+          ))} */}
+
+          {/* {marker} */}
           {guestMarker1}
           {guestMarker2}
           {guestMarker3}
         </MapView>
+        {/* <TextInput
+          placeholder="Enter destination..."
+          style={styles.destinationInput}
+          value={this.state.destination}
+          clearButtonMode="always"
+          onChangeText={(destination) => {
+            this.setState({ destination, pointCoords: [] });
+            this.onChangeDestinationDebounced(destination);
+          }}
+        /> */}
+
+        {predictions}
         {getGuest}
       </View>
     );

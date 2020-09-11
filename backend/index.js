@@ -16,12 +16,17 @@ io.on("connection", (socket) => {
   socket.join(room, () => {
     const rooms = Object.keys(socket.rooms);
     const val = Object.values(socket.rooms);
+    console.log(rooms); // [ <socket.id>, 'room 237']
+    console.log(val); // [ <socket.id>, 'room 237']
   });
 
   socket.on("joinEvent", (guestLocation) => {
     guestSocket = socket;
     if (guestSocket !== null) {
       io.to("room 237").emit("start");
+
+      console.log("SOCKET -ID :", socket.id);
+      console.log("*****************");
     }
   });
 
@@ -30,6 +35,8 @@ io.on("connection", (socket) => {
     console.log("Host wants a guest at ");
     if (guestSocket !== null) {
       io.to("room 237").emit("guestRequest", routeToHost);
+      // guestSocket.emit("guestRequest", routeToHost);
+      console.log("=======================");
     }
   });
 
