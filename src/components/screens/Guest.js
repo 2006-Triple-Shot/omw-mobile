@@ -13,22 +13,18 @@ const LOCATION_TASK_NAME = "background-location-task";
 const socket = socketIO.connect("http://192.168.0.153:5000");
 
 TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
-  let count = 1;
   if (error) {
     console.log(error);
     return;
   }
   if (data) {
     const { locations } = data;
-
-    // setInterval(() => {
     count++;
     socket.emit("liveTracking", {
       latitude: locations[0].coords.latitude,
       longitude: locations[0].coords.longitude,
     });
-    console.log(count);
-    // }, 500000);
+    console.log(connected);
   }
 });
 
@@ -79,9 +75,7 @@ export default class Guest extends Component {
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${this.state.latitude},${this.state.longitude}&destination=place_id:${destinationPlaceId}&key=${apiKey}`
       );
-      // console.log(response);
       const json = await response.json();
-      // console.log(json);
       const points = polyline.decode(json.routes[0].overview_polyline.points);
       const pointCoords = points.map((point) => {
         return { latitude: point[0], longitude: point[1] };
@@ -90,7 +84,6 @@ export default class Guest extends Component {
         pointCoords,
         routeResponse: json,
       });
-
       return;
     } catch (error) {
       console.log(error);
@@ -104,7 +97,6 @@ export default class Guest extends Component {
   findHosts() {
     if (!this.state.lookingForHosts) {
       this.setState({ lookingForHosts: true });
-
       socket.on("connection");
       socket.emit(
         "joinEvent",
@@ -116,18 +108,11 @@ export default class Guest extends Component {
       );
 
       socket.on("guestRequest", async (routeResponse) => {
-        // console.log(routeResponse);
         this.setState({
           hostFound: true,
           routeResponse,
           indicator: false,
         });
-        // await this.getRouteDirections(
-        // routeResponse.geocoded_waypoints[0].place_id
-        // );
-        // this.map.fitToCoordinates(this.props.pointCoords, {
-        //   edgePadding: { top: 140, bottom: 140, left: 20, right: 20 },
-        // });
       });
     }
   }
@@ -137,7 +122,6 @@ export default class Guest extends Component {
       latitude: this.state.latitude,
       longitude: this.state.longitude,
     });
-
     this.setState({
       lookingForHosts: false,
       hostFound: true,
@@ -157,7 +141,6 @@ export default class Guest extends Component {
     let hostSearchText = "Join 👥";
     let bottomButtonFunction = this.findHosts;
     if (!this.state.latitude) return null;
-
     if (this.state.lookingForHosts && this.state.indicator) {
       hostSearchText = "Hold, tight..";
       findingHostActIndicator = (
@@ -213,11 +196,6 @@ export default class Guest extends Component {
           }}
           showsUserLocation={true}
         >
-          {/* <Polyline
-            coordinates={this.state.pointCoords}
-            strokeWidth={2}
-            strokeColor="red"
-          /> */}
           {endMarker}
           {startMarker}
         </MapView>
