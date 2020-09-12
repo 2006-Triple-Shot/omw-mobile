@@ -3,51 +3,40 @@ import { Button, StyleSheet, Text, View } from "react-native";
 import axios from "axios";
 import baseUrl from "../../../baseUrl";
 
-// const dummyEvents = [
-//   {
-//     title: "back",
-//     date: "2020-10-22",
-//     description:
-//       "Distinctio aliquam mollitia. Velit autem vel adipisci blanditiis et doloremque. ",
-//   },
-//   {
-//     title: "Gourde",
-//     date: "2021-03-18",
-
-//     description:
-//       "Amet consequatur omnis odio ut. At unde est corporis ea incidunt deleniti perferendis et commodi.",
-//   },
-//   {
-//     title: "deposit",
-//     date: "2021-04-28",
-
-//     description: "Doloribus architecto non nesciunt unde.",
-//   },
-// ];
 
 export default class MyEvents extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      events: [...dummyEvents],
+      events: [],
+      user: {},
+      token: ""
+
     };
   }
 
   async componentDidMount() {
-    const test = await populateArrayWithEventData();
-    console.log("test", test);
+    // const test = await populateArrayWithEventData();
+    // console.log("test", test);
+    const { user, token, config } = this.props;
+    this.setState({
+      user: user,
+      token: token,
+      config: config
+    })
   }
-  // async getEvents() {
-  //   try {
-  //     const events = await axios.get(
-  //       "https://onmyway-api.herokuapp.com/api/users/test/events",
-  //       testGet.headers
-  //     );
-  //     this.setState({ events: events });
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // }
+  async getEvents() {
+    try {
+      const events = await axios.get(
+        `${baseUrl}/api/users/test/events`,
+        this.state.config
+      );
+      this.setState({ events: events });
+      console.log("GOT EVENTS", events)
+    } catch (err) {
+      console.error(err);
+    }
+  }
   render() {
     return (
       <View style={styles.container}>
@@ -75,7 +64,7 @@ export default class MyEvents extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#00B8FF",
+    backgroundColor: "#71C8E2",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -83,9 +72,10 @@ const styles = StyleSheet.create({
     fontSize: 44,
     textAlign: "center",
     color: "black",
+    // backgroundColor: "white",
     marginTop: 10,
     marginBottom: 100,
-    fontWeight: "200",
+    fontWeight: "400",
   },
   event: {
     flex: 0.5,

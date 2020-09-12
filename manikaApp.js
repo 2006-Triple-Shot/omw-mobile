@@ -5,16 +5,21 @@ import Host from "./src/components/screens/Host";
 import Guest from "./src/components/screens/Guest";
 import FrontPage from "./src/components/screens/FrontPage";
 import Apps from "./Apps";
+import MyEvents from "./src/components/screens/MyEvents";
 import * as React from "react";
 import { StyleSheet, Button, View, Text } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+let userState;
+let tokenState;
+let configObj;
 
 function MainScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* <Text>Home Screen</Text> */}
-      <Apps />
+
+      <Apps user={userState} token={tokenState} />
       <Button title="Go to Apps" onPress={() => navigation.navigate("Apps")} />
     </View>
   );
@@ -24,6 +29,7 @@ function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* <Text>Home Screen</Text> */}
+      {/* config={configObj} user={userState} token={tokenState}  */}
       <Welcome />
       <Button
         title="Go to Maps"
@@ -33,6 +39,12 @@ function HomeScreen({ navigation }) {
         title="Go to Guest Maps"
         onPress={() => navigation.navigate("GuestDetails")}
       />
+
+      <Button
+        title="My Events"
+        onPress={() => navigation.navigate("MyEvents")}
+      />
+
       <Button title="Exit" onPress={() => navigation.navigate("GoodBye")} />
     </View>
   );
@@ -43,7 +55,7 @@ function HostDetailsScreen({ navigation }) {
     <View style={styles.container}>
       <Text>Details Screen</Text>
 
-      <Host />
+      <Host user={userState} token={tokenState} />
       {/* <Button
         title="Go to Details... again"
         onPress={() => navigation.push("Details")}
@@ -61,19 +73,32 @@ function GuestDetailsScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text>Details Screen</Text>
-      <Guest />
+      <Guest user={userState} token={tokenState} />
     </View>
   );
 }
 const Stack = createStackNavigator();
 
+function MyEventsScreen({navigation}) {
+  return (
+    <View style={styles.container}>
+      <Text>My Events</Text>
+      <MyEvents user={userState} token={tokenState} />
+    </View>
+  );
+}
+
 function Apple() {
+  // const { user, token, config } = this.props;
+  // userState = user;
+  // tokenState = token;
+  // configObj = config;
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen  name="Home" component={HomeScreen} />
         <Stack.Screen name="Apps" component={MainScreen} />
-
+        <Stack.Screen name="MyEvents" component={MyEventsScreen} />
         <Stack.Screen name="HostDetails" component={HostDetailsScreen} />
         <Stack.Screen name="GuestDetails" component={GuestDetailsScreen} />
         <Stack.Screen name="GoodBye" component={FrontPage} />
