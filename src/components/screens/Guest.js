@@ -20,7 +20,7 @@ if (process.env.NODE_ENV === "production") {
 
 
 TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
-  // let count = 1;
+
   if (error) {
     console.log(error);
     return;
@@ -29,10 +29,12 @@ TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
     const { locations } = data;
 
     // setInterval(() => {
+
     socket.emit("liveTracking", {
       latitude: locations[0].coords.latitude,
       longitude: locations[0].coords.longitude,
     });
+
   }
 });
 
@@ -119,7 +121,7 @@ export default class Guest extends Component {
         this.props.Id
       );
 
-      socket.on("guestRequest", async routeResponse => {
+      socket.on("guestRequest", async (routeResponse) => {
         // console.log(routeResponse);
         this.setState({
           hostFound: true,
