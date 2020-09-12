@@ -1,72 +1,98 @@
 import React, { Component } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Button, StyleSheet, Text, View } from "react-native";
 import axios from "axios";
 import baseUrl from "../../../baseUrl";
-
-// const dummyEvents = [
-//   {
-//     title: "back",
-//     date: "2020-10-22",
-//     description:
-//       "Distinctio aliquam mollitia. Velit autem vel adipisci blanditiis et doloremque. ",
-//   },
-//   {
-//     title: "Gourde",
-//     date: "2021-03-18",
-
-//     description:
-//       "Amet consequatur omnis odio ut. At unde est corporis ea incidunt deleniti perferendis et commodi.",
-//   },
-//   {
-//     title: "deposit",
-//     date: "2021-04-28",
-
-//     description: "Doloribus architecto non nesciunt unde.",
-//   },
-// ];
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default class MyEvents extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      events: [...dummyEvents],
+      events: [],
+      user: {},
+      token: "",
+      isHost: false,
     };
+    this.getEvents = this.getEvents.bind(this);
   }
 
   async componentDidMount() {
-    const test = await populateArrayWithEventData();
-    console.log("test", test);
+    const { user, token, isHost } = this.props.route.params;
+    try {
+      const events = await this.getEvents();
+      this.setState({
+        events: events.data,
+        user: user,
+        token: token,
+        isHost: isHost,
+      });
+    } catch (err) {
+      console.log(err);
+    }
   }
-  // async getEvents() {
-  //   try {
-  //     const events = await axios.get(
-  //       "https://onmyway-api.herokuapp.com/api/users/test/events",
-  //       testGet.headers
-  //     );
-  //     this.setState({ events: events });
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // }
+
+  async getEvents() {
+    try {
+      const { token } = this.props.route.params;
+      const config = {
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": `${token}`,
+        },
+      };
+      const events = await axios.get(
+        `${baseUrl}/api/users/test/events`,
+        config
+      );
+      console.log("inside code before error catch");
+      console.log("GOT EVENTS", events.data);
+      return events
+    } catch (err) {
+      console.error("Try again, my friend. Try again.", err);
+    }
+  }
   render() {
     return (
       <View style={styles.container}>
         <View>
           <Text style={styles.heading}>My Events</Text>
         </View>
-
-        <View style={styles.event}>
+        <ScrollView >
           {this.state.events
             ? this.state.events.map((event, index) => {
                 return (
                   <View key={index} style={styles.textBox}>
                     <Text>{event.title}</Text>
+                    <Text style={styles.paragraph}>{event.description}</Text>
                     <Text>{event.date}</Text>
+                    {this.state.isHost ? (
+                      <TouchableOpacity
+                        onPress={() =>
+                          this.props.navigation.navigate("Tabs", {
+                            screen: "Host",
+                          })
+                        }
+                      >
+                        <Text style={styles.button}>Start Hosting</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() =>
+                          this.props.navigation.navigate("Tabs", {
+                            screen: "Guest",
+                          })
+                        }
+                      >
+
+                          <Text style={styles.button}>Share Location</Text>
+
+                      </TouchableOpacity>
+                    )}
                   </View>
                 );
               })
             : null}
-        </View>
+        </ScrollView>
       </View>
     );
   }
@@ -75,37 +101,61 @@ export default class MyEvents extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#00B8FF",
+    backgroundColor: "#71C8E2",
     alignItems: "center",
     justifyContent: "center",
   },
   heading: {
-    fontSize: 44,
+    color: "#71C8E2",
+    backgroundColor: "black",
+    fontSize: 20,
+    width: 150,
+    marginBottom: 10,
+    justifyContent: "center",
+    height: 45,
+    justifyContent: "center",
+    flexDirection: "row",
     textAlign: "center",
-    color: "black",
-    marginTop: 10,
-    marginBottom: 100,
-    fontWeight: "200",
+    alignContent: "center",
+    alignSelf: "center",
   },
   event: {
     flex: 0.5,
+    paddingVertical: 20,
     backgroundColor: "#00B8FF",
     alignItems: "center",
     justifyContent: "center",
   },
   textBox: {
     flex: 0.5,
-    backgroundColor: "#fff",
+    backgroundColor: "#FAC5DE",
     padding: 5,
     fontSize: 18,
     borderWidth: 0.5,
     marginLeft: 5,
     marginRight: 5,
-    height: 80,
+    height: 120,
     width: 300,
     alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
     color: "black",
+  },
+  paragraph: {
+    alignSelf: "center",
+    justifyContent: "center",
+    fontSize: 12,
+  },
+  button: {
+    color: "white",
+    backgroundColor: "#71C8E2",
+    fontSize: 18,
+    width: 110,
+    marginBottom: 10,
+    justifyContent: "center",
+    height: 45,
+    textAlign: "center",
+    alignContent: "center",
+    alignSelf: "center",
   },
 });
