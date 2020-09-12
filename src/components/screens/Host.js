@@ -110,8 +110,12 @@ export default class Host extends Component {
   }
   requestGuest() {
     this.setState({ lookingForGuest: true });
-
-    const socket = socketIO.connect("http://192.168.1.169:5000");
+    let socket
+    if (process.env.NODE_ENV === "production") {
+      socket = socketIO.connect(`${baseUrl}`);
+    } else {
+      socket = socketIO.connect("http://192.168.1.169:5000");
+    }
 
     socket.on("connection");
     socket.emit("guestRequest", this.state.routeResponse);

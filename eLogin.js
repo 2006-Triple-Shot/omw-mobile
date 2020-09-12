@@ -13,7 +13,6 @@ import {
 import baseUrl from "./baseUrl";
 import axios from "axios";
 import Apple from "./manikaApp.js";
-import { AppLoading } from "expo";
 
 export default class Login extends Component {
   constructor(props) {
@@ -31,18 +30,10 @@ export default class Login extends Component {
       config: {},
       isReady: true
     };
-    // this.populateArrayWithEventData = this.populateArrayWithEventData.bind(
-    //   this
-    // );
     this.handleChange = this.handleChange.bind(this);
     this.handleSignIn = this.handleSignIn.bind(this);
     this.handleSignUp = this.handleSignUp.bind(this);
     this.getUser = this.getUser.bind(this);
-  }
-
-  componentDidMount() {
-    if (this.state.loggedIn) {
-    }
   }
 
   handleChange(name, value) {
@@ -78,11 +69,19 @@ export default class Login extends Component {
         loggedIn: true,
         isReady: true
       });
-      console.log("Got user ? ", user.data);
 
-      this.props.navigation.navigate("BottomTabs");
+      this.props.navigation.navigate("Tabs", {
+        screen: "MyEvents",
+        params: {
+          user: user.data,
+          isHost: this.state.isHost,
+          token: this.state.token,
+        },
+      });
+
     } catch (error) {
       console.log(error, "Nope.");
+      return alert("Incorrect email and/or password");
     }
   }
 
@@ -106,25 +105,6 @@ export default class Login extends Component {
       console.log(err, "Error.");
     }
   }
-
-  // async populateArrayWithEventData() {
-  //   try {
-  //     const config = {
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `${this.state.token}`,
-  //       },
-  //     };
-  //     const events = await axios.get(
-  //       `${baseUrl}/api/users/test/events`,
-  //       config
-  //     );
-  //     const results = [events];
-  //     return results;
-  //   } catch (err) {
-  //     console.log(err, "It failed");
-  //   }
-  // }
 
   render() {
 
@@ -237,6 +217,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexDirection: "row",
   },
-
-
 });

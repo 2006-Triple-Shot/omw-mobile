@@ -7,10 +7,17 @@ import polyline from "@mapbox/polyline";
 import socketIO from "socket.io-client";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
+import baseUrl from "../../../baseUrl";
 import axios from "axios";
 
 const LOCATION_TASK_NAME = "background-location-task";
-const socket = socketIO.connect("http://192.168.1.169:5000");
+let socket
+if (process.env.NODE_ENV === "production") {
+  socket = socketIO.connect(`${baseUrl}`);
+} else {
+  socket = socketIO.connect("http://192.168.1.169:5000");
+}
+
 
 TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
   // let count = 1;
