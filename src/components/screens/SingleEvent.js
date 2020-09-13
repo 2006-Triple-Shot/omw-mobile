@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Text, View } from 'react-native'
+import { Text, View, StyleSheet, Image, TouchableOpacity } from 'react-native'
 import axios from "axios"
 import baseUrl from "../../../baseUrl";
 
@@ -18,12 +18,14 @@ export class SingleEvent extends Component {
 
   async componentDidMount() {
    try {
+    //  console.log(this.props.route.params)
+     const { user, isHost } = this.props.route.params.params;
      const data = await this.getEventByIdFromNavProps()
      this.setState({
        fetched: true,
-       user: this.props.navigation.params.user,
+       user: user,
        event: data,
-       isHost: this.props.params.isHost
+       isHost: isHost
      });
      console.log("event set and fetched");
    } catch (err) {
@@ -32,10 +34,18 @@ export class SingleEvent extends Component {
   }
 
   async getEventByIdFromNavProps() {
-    const {eventId} = this.props.navigation.params.eventId;
+    const {eventId, token} = this.props.route.params.params;
+    const config = {
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": `${token}`,
+      },
+    };
+    console.log(this.props.route.params.params.eventId);
     console.log("this is event", eventId);
+    const eventIdStr = eventId.toString();
     try {
-      const {data} = await axios.get(`${baseUrl}/${eventId}`);
+      const {data} = await axios.get(`${baseUrl}/api/events/${eventId}`, config);
       console.log("Success GET event", data);
       return data
     } catch (err) {
@@ -44,23 +54,54 @@ export class SingleEvent extends Component {
   }
 
   render() {
-    if (this.state.fetched) {
-      return (
-        <View style={styles.container}>
-          <View style={styles.textBox}>
+    return (
+      <View style={styles.container}>
+        {this.state.fetched ? (
+          <View>
             <Text style={styles.heading}>{this.state.event.title}</Text>
-            <Text style={styles.paragraph}>{this.state.event.description}</Text>
-            <Text>{this.state.event.date}</Text>
+            <View style={styles.textBox}>
+              <Text style={styles.paragraph}>
+                Description: {this.state.event.description}
+              </Text>
+              <Text>Date: {this.state.event.date}</Text>
+              <Text>Guestlist:</Text>
+              {this.state.event.guest.map((guest, index) => {
+                return (
+                  <View key={index} style={styles.card}>
+                    <Text>{guest.firstName}</Text>
+                    <Text>{guest.lastName}</Text>
+                    <Text>{guest.email}</Text>
+                  </View>
+                );
+              })}
+            </View>
+            {this.state.isHost ? (
+              <TouchableOpacity
+                onPress={() =>
+                  this.props.navigation.navigate("Tabs", {
+                    screen: "Host",
+                  })
+                }
+              >
+                <Text style={styles.button}>Find Guests On Map</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() =>
+                  this.props.navigation.navigate("Tabs", {
+                    screen: "Guest",
+                  })
+                }
+              >
+                <Text style={styles.button}>Share With Host</Text>
+              </TouchableOpacity>
+            )}
           </View>
-        </View>
-      );
-    } else {
-      return (
-        <View style={styles.container} >
+        ) : (
           <Text> Loading...</Text>
-        </View>
-      )
-    }
+        )}
+      </View>
+    );
   }
 }
 
@@ -72,14 +113,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  heading: {
-    color: "#71C8E2",
-    backgroundColor: "black",
-    fontSize: 20,
-    width: 150,
-    marginBottom: 10,
+  card: {
+    backgroundColor: "white",
+    alignItems: "center",
     justifyContent: "center",
-    height: 45,
+  },
+  heading: {
+    color: "black",
+    fontSize: 30,
+    height: 120,
+    width: 330,
+    marginBottom: 10,
     justifyContent: "center",
     flexDirection: "row",
     textAlign: "center",
@@ -91,6 +135,8 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     backgroundColor: "#00B8FF",
     alignItems: "center",
+    height: 400,
+    width: 300,
     justifyContent: "center",
   },
   textBox: {
@@ -101,7 +147,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     marginLeft: 5,
     marginRight: 5,
-    height: 120,
+    height: 400,
     width: 300,
     alignSelf: "center",
     alignItems: "center",
@@ -111,11 +157,12 @@ const styles = StyleSheet.create({
   paragraph: {
     alignSelf: "center",
     justifyContent: "center",
-    fontSize: 12,
+    fontSize: 18,
   },
   button: {
+
     color: "white",
-    backgroundColor: "#71C8E2",
+    backgroundColor: "black",
     fontSize: 18,
     width: 110,
     marginBottom: 10,
