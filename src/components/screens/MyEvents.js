@@ -41,11 +41,11 @@ export default class MyEvents extends Component {
         },
       };
       const events = await axios.get(
-        `${baseUrl}/api/users/test/events`,
+        `${baseUrl}/api/events/`,
         config
       );
       console.log("inside code before error catch");
-      console.log("GOT EVENTS", events.data);
+      // console.log("GOT EVENTS", events.data);
       return events
     } catch (err) {
       console.error("Try again, my friend. Try again.", err);
@@ -65,30 +65,21 @@ export default class MyEvents extends Component {
                     <Text>{event.title}</Text>
                     <Text style={styles.paragraph}>{event.description}</Text>
                     <Text>{event.date}</Text>
-                    {this.state.isHost ? (
-                      <TouchableOpacity
-                        onPress={() =>
-                          this.props.navigation.navigate("Tabs", {
-                            screen: "Host",
-                          })
-                        }
-                      >
-                        <Text style={styles.button}>Start Hosting</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity
-                        onPress={() =>
-                          this.props.navigation.navigate("Tabs", {
-                            screen: "Guest",
-                          })
-                        }
-                      >
-
-                          <Text style={styles.button}>Share Location</Text>
-
-                      </TouchableOpacity>
-                    )}
-                  </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        this.props.navigation.navigate("SingleEvent", {
+                          params: {
+                            eventId: event.id,
+                            user: this.state.user,
+                            isHost: this.state.isHost,
+                            token: this.state.token
+                          }
+                        })
+                      }
+                    >
+                      <Text style={styles.button}>View Details</Text>
+                    </TouchableOpacity>
+                    </View>
                 );
               })
             : null}

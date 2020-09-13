@@ -6,10 +6,11 @@ import {
   Guest,
   Host,
   MyEvents,
-  Event,
+  SingleEvent,
   New,
   Profile,
-  Settings
+  Settings,
+  ViewProfile,
 } from "./src/components"
 import Login from "./eLogin";
 
@@ -60,8 +61,8 @@ const createBottomTabs = (props) => {
         }}
       />
       <MaterialBottomTabs.Screen
-        name="Profile"
-        component={Profile}
+        name="ViewProfile"
+        component={ViewProfile}
         options={{
           user: props.route.params.user,
           token: props.route.params.token,
@@ -114,10 +115,33 @@ export default class App extends Component {
             }}
           />
           <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Tabs" children={createBottomTabs} options={{title:"On My Way",
-        headerStyle: {backgroundColor: "black"},
-        headerTitleStyle: {color: "white"}
-        } }/>
+          <Stack.Screen
+            name="Tabs"
+            children={createBottomTabs}
+            options={{
+              title: "On My Way",
+              headerStyle: { backgroundColor: "black" },
+              headerTitleStyle: { color: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="SingleEvent"
+            component={SingleEvent}
+            options={{
+              title: "On My Way",
+              headerStyle: { backgroundColor: "black" },
+              headerTitleStyle: { color: "white" },
+            }}
+          />
+          <Stack.Screen
+            name={"MyProfile"}
+            component={Profile}
+            options={{
+              title: "On My Way",
+              headerStyle: { backgroundColor: "black" },
+              headerTitleStyle: { color: "white" },
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     );
