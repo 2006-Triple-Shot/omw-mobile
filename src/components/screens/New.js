@@ -1,60 +1,43 @@
-import React, { Component } from 'react'
-import { Text, View } from 'react-native'
-
-export class New extends Component {
-  render() {
-    return (
-      <View>
-        <Text> New </Text>
-      </View>
-    )
-  }
-}
-
-export default New
 
 
 
 
+import React, { useState } from "react";
+import { Button, StyleSheet, Text, View } from "react-native";
+import NativeForms from "native-forms";
 
+const New = () => {
+  const [hasForm, showForm] = useState(false);
+  const show = () => showForm(true);
+  const hide = () => showForm(false);
 
+  return (
+    <View style={styles.container}>
+      <Text>Host</Text>
 
-// import React, { useState } from "react";
-// import { Button, StyleSheet, Text, View } from "react-native";
-// import NativeForms from "native-forms";
+      <Button
+        title="Create Events | Invite Guests"
+        onPress={show}
+        color="#20f"
+      />
 
-// const Welcome = () => {
-//   const [hasForm, showForm] = useState(false);
-//   const show = () => showForm(true);
-//   const hide = () => showForm(false);
+      {hasForm && (
+        <NativeForms
+          form="https://my.nativeforms.com/wNy5UUa1jZmUmN3oUM31Db"
+          onClose={hide}
+        />
+      )}
+    </View>
+  );
+};
 
-//   return (
-//     <View style={styles.container}>
-//       <Text>Host</Text>
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
-//       <Button
-//         title="Create Events | Invite Guests"
-//         onPress={show}
-//         color="#20f"
-//       />
-
-//       {hasForm && (
-//         <NativeForms
-//           form="https://my.nativeforms.com/wNy5UUa1jZmUmN3oUM31Db"
-//           onClose={hide}
-//         />
-//       )}
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#fff",
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-// });
-
-// export default Welcome;
+export default New;
