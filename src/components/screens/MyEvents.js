@@ -65,29 +65,19 @@ export default class MyEvents extends Component {
                     <Text>{event.title}</Text>
                     <Text style={styles.paragraph}>{event.description}</Text>
                     <Text>{event.date}</Text>
-                    {this.state.isHost ? (
+
                       <TouchableOpacity
                         onPress={() =>
-                          this.props.navigation.navigate("Tabs", {
-                            screen: "Host",
+                          this.props.navigation.navigate("SingleEvent", {
+                            eventId: event.id,
+                            user: this.state.user,
+                            isHost: this.state.isHost
                           })
                         }
                       >
-                        <Text style={styles.button}>Start Hosting</Text>
+                        <Text style={styles.button}>View Details</Text>
                       </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity
-                        onPress={() =>
-                          this.props.navigation.navigate("Tabs", {
-                            screen: "Guest",
-                          })
-                        }
-                      >
-
-                          <Text style={styles.button}>Share Location</Text>
-
-                      </TouchableOpacity>
-                    )}
+                    )
                   </View>
                 );
               })

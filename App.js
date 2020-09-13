@@ -6,7 +6,7 @@ import {
   Guest,
   Host,
   MyEvents,
-  Event,
+  SingleEvent,
   New,
   Profile,
   Settings
@@ -114,10 +114,24 @@ export default class App extends Component {
             }}
           />
           <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Tabs" children={createBottomTabs} options={{title:"On My Way",
-        headerStyle: {backgroundColor: "black"},
-        headerTitleStyle: {color: "white"}
-        } }/>
+          <Stack.Screen
+            name="Tabs"
+            children={createBottomTabs}
+            options={{
+              title: "On My Way",
+              headerStyle: { backgroundColor: "black" },
+              headerTitleStyle: { color: "white" },
+            }}
+          />
+          <Stack.Screen
+            name="SingleEvent"
+            component={SingleEvent}
+            options={{
+              title: "On My Way",
+              headerStyle: { backgroundColor: "black" },
+              headerTitleStyle: { color: "white" },
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     );
