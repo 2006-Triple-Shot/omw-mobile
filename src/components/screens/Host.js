@@ -160,7 +160,7 @@ export default class Host extends Component {
       <BottomButton
         key={this.getRandomInt()}
         onPressFunction={() => this.requestGuest()}
-        buttonText="Connect with Guests"
+        buttonText="Connect"
       >
         {findingGuestActIndicator}
       </BottomButton>
@@ -197,15 +197,15 @@ export default class Host extends Component {
           initialRegion={{
             latitude: this.state.latitude,
             longitude: this.state.longitude,
-            latitudeDelta: 0.18,
-            longitudeDelta: 0.18,
+            latitudeDelta: 0.15,
+            longitudeDelta: 0.15,
           }}
           showsUserLocation={true}
         >
           {/* <Polyline
             key={this.getRandomInt()}
             coordinates={this.state.pointCoords}
-            strokeWidth={1}
+            strokeWidth={3}
             strokeColor="red"
           /> */}
           {guestMarker1}
