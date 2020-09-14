@@ -97,7 +97,7 @@ export default class App extends Component {
         <Stack.Navigator
           screenOptions={{
             headerStyle: {
-              backgroundColor: "#1A1C19",
+              backgroundColor: "#1A2425",
               // backgroundColor: "#71C8E2",
               // borderColor: "#2e2c2b",
             },
@@ -108,7 +108,7 @@ export default class App extends Component {
             name="Home"
             component={Welcome}
             options={{
-              headerStyle: { backgroundColor: "#1A1C19" },
+              headerStyle: { backgroundColor: "#1A2425" },
               headerTitleStyle: { color: "#AE744E" },
             }}
           />
@@ -117,10 +117,10 @@ export default class App extends Component {
             name="Tabs"
             children={createBottomTabs}
             options={{
-              title: "On My Way",
+              title: "Events",
               // tintColor: { color: "#AE744E" },
               headerStyle: { backgroundColor: "black" },
-              headerTitleStyle: { color: "white" },
+              headerTitleStyle: { color: "#AE744E" },
             }}
           />
           <Stack.Screen
@@ -129,7 +129,7 @@ export default class App extends Component {
             options={{
               title: "On My Way",
               headerStyle: { backgroundColor: "black" },
-              headerTitleStyle: { color: "white" },
+              headerTitleStyle: { color: "#AE744E" },
             }}
           />
           <Stack.Screen
@@ -138,7 +138,7 @@ export default class App extends Component {
             options={{
               title: "On My Way",
               headerStyle: { backgroundColor: "black" },
-              headerTitleStyle: { color: "white" },
+              headerTitleStyle: { color: "#AE744E" },
             }}
           />
         </Stack.Navigator>
