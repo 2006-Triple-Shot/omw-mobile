@@ -105,7 +105,7 @@ export default class App extends Component {
           }}
         >
           <Stack.Screen
-            name="On My Way"
+            name="Home"
             component={Welcome}
             options={{
               headerStyle: { backgroundColor: "#1A1C19" },
@@ -118,6 +118,7 @@ export default class App extends Component {
             children={createBottomTabs}
             options={{
               title: "On My Way",
+              // tintColor: { color: "#AE744E" },
               headerStyle: { backgroundColor: "black" },
               headerTitleStyle: { color: "white" },
             }}

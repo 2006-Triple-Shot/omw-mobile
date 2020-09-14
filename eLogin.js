@@ -8,7 +8,8 @@ import {
   SafeAreaView,
   Keyboard,
   TouchableWithoutFeedback,
-  ActivityIndicator
+  ActivityIndicator,
+  ImageBackground,
 } from "react-native";
 import baseUrl from "./baseUrl";
 import axios from "axios";
@@ -28,7 +29,7 @@ export default class Login extends Component {
       userEvents: [],
       userContacts: [],
       config: {},
-      isReady: true
+      isReady: true,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSignIn = this.handleSignIn.bind(this);
@@ -59,7 +60,7 @@ export default class Login extends Component {
         email: email,
         password: password,
       });
-      this.setState({isReady: false});
+      this.setState({ isReady: false });
       const token = await result.data.token;
       this.setState({ token: token });
       const user = await this.getUser();
@@ -67,7 +68,7 @@ export default class Login extends Component {
         user: user.data,
         isHost: user.data.isHost,
         loggedIn: true,
-        isReady: true
+        isReady: true,
       });
 
       this.props.navigation.navigate("Tabs", {
@@ -78,7 +79,6 @@ export default class Login extends Component {
           token: this.state.token,
         },
       });
-
     } catch (error) {
       console.log(error, "Nope.");
       return alert("Incorrect email and/or password");
@@ -107,58 +107,56 @@ export default class Login extends Component {
   }
 
   render() {
-
     return (
       <SafeAreaView style={styles.container}>
         {!this.state.isReady ? (
           <ActivityIndicator size="large" animating={this.state.isReady} />
         ) : null}
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View>
-            <Text style={styles.headerText}>On My Way</Text>
-            <SafeAreaView>
-              <View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="your@email.com"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholderTextColor="black"
-                  onBlur={() => Keyboard.dismiss()}
-                  value={this.state.email}
-                  onChangeText={email => this.handleChange("email", email)}
-                />
-                <TextInput
-                  style={styles.input}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  secureTextEntry
-                  placeholder="Password"
-                  placeholderTextColor="black"
-                  value={this.state.password}
-                  onChangeText={pw => this.handleChange("password", pw)}
-                />
-                <TouchableOpacity
-                  onPress={this.handleSignIn}
-                  style={styles.button}
-                >
-                  <Text style={styles.buttonText}>Sign in</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    console.log("signup");
-                  }}
-                  style={styles.button}
-                >
-                  <Text style={styles.buttonText}>Register</Text>
-                </TouchableOpacity>
-              </View>
-            </SafeAreaView>
-            <Text style={styles.errorMessage}>{this.state.errorMessage}</Text>
+          <View style={styles.container}>
+            <ImageBackground
+              source={{
+                uri:
+                  "https://images.unsplash.com/photo-1597995505938-2387426962ef?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+              }}
+              style={styles.image}
+            >
+              <TextInput
+                style={styles.input}
+                placeholder="your@email.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholderTextColor="black"
+                onBlur={() => Keyboard.dismiss()}
+                value={this.state.email}
+                onChangeText={(email) => this.handleChange("email", email)}
+              />
+              <TextInput
+                style={styles.input}
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry
+                placeholder="Password"
+                placeholderTextColor="black"
+                value={this.state.password}
+                onChangeText={(pw) => this.handleChange("password", pw)}
+              />
+              <TouchableOpacity onPress={this.handleSignIn} style={styles.text}>
+                <Text style={styles.text}>Sign in</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  console.log("signup");
+                }}
+                style={styles.text}
+              >
+                <Text style={styles.text2}>Create Account</Text>
+              </TouchableOpacity>
+              <Text style={styles.text}>{this.state.errorMessage}</Text>
+            </ImageBackground>
           </View>
         </TouchableWithoutFeedback>
-        {/* </ImageBackground> */}
       </SafeAreaView>
     );
   }
@@ -167,54 +165,51 @@ export default class Login extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#71C8E2",
-    alignItems: "center",
+    flexDirection: "column",
+  },
+  image: {
+    flex: 1,
+    resizeMode: "cover",
     justifyContent: "center",
   },
-  headerText: {
-    fontSize: 28,
+
+  text: {
+    fontSize: 22,
     height: 40,
-    color: "#71C8E2",
+    color: "black",
     fontWeight: "bold",
     textAlign: "center",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    backgroundColor: "#71C8E2",
-    marginBottom: 16,
-    padding: 10,
+    marginBottom: 20,
+    padding: 15,
     justifyContent: "center",
     flexDirection: "row",
-    width: 160,
-    alignContent: "center",
+    width: 100,
     alignSelf: "center",
-    marginTop: 10,
   },
-  buttonText: {
-    fontSize: 30,
-    height: 50,
-    color: "#71C8E2",
+  text2: {
+    fontSize: 22,
+    height: 40,
+    color: "#7E2D29",
     fontWeight: "bold",
     textAlign: "center",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    backgroundColor: "black",
-    marginBottom: 10,
+    marginBottom: 20,
+    padding: 15,
     justifyContent: "center",
     flexDirection: "row",
-    width: 150,
-    alignContent: "center",
+    width: 200,
     alignSelf: "center",
-    marginTop: 10,
   },
   input: {
     height: 40,
     alignSelf: "center",
-    fontSize: 15,
-    width: 300,
-    backgroundColor: "#A7ECFF",
-    padding: 10,
-    color: "black",
-    marginBottom: 10,
+    fontSize: 20,
+    width: 280,
+    backgroundColor: "#FFFFFF50",
+    padding: 12,
+    color: "#7E2D29",
+    marginBottom: 15,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    justifyContent: "center",
-    flexDirection: "row",
   },
 });

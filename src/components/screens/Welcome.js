@@ -21,6 +21,9 @@ class Welcome extends Component {
           }}
           style={styles.image}
         >
+          <View>
+            <Text style={styles.text2}>On my way!</Text>
+          </View>
           <TouchableOpacity
             onPress={() => this.props.navigation.navigate("Login")}
           >
@@ -44,60 +47,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   text: {
-    color: "black",
-    // color: "#AE744E",
+    color: "#7E2D29",
+    // backgroundColor: "#FFFFFF50",
     textAlign: "center",
-    fontSize: 34,
+    fontSize: 24,
     fontWeight: "bold",
-    padding: 20,
-    marginBottom: 200,
-    // backgroundColor: "#1B2727",
-    // width: 120,
-
+    padding: 10,
+    // marginBottom: 400,
+    marginTop: 400,
+    alignSelf: "center",
+    width: 160,
+  },
+  text2: {
+    color: "#929BA0",
+    textAlign: "center",
+    fontSize: 40,
+    padding: 10,
     alignSelf: "center",
   },
-  button: {
-    color: "white",
-    backgroundColor: "black",
-    fontSize: 30,
-    width: 100,
-    marginBottom: 100,
-    // justifyContent: "flex-start",
-    height: 45,
-
-    // flexDirection: "column",
-    // textAlign: "center",
-    // alignContent: "flex-start",
-    // alignSelf: "flex-start",
-  },
 });
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#71C8E2",
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   backgroungImage: {
-//     flex: 1,
-//     justifyContent: "flex-start",
-//     paddingVertical: 30,
-//   },
-//   button: {
-//     color: "#71C8E2",
-//     backgroundColor: "black",
-//     fontSize: 30,
-//     width: 110,
-//     marginBottom: 10,
-//     justifyContent: "center",
-//     height: 45,
-//     justifyContent: "center",
-//     flexDirection: "row",
-//     textAlign: "center",
-//     alignContent: "center",
-//     alignSelf: "center",
-//   },
-// });
 
 export default Welcome;
