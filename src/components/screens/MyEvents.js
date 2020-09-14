@@ -61,7 +61,7 @@ export default class MyEvents extends Component {
         <ImageBackground
           source={{
             uri:
-              "https://images.unsplash.com/photo-1597995505938-2387426962ef?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+              "https://images.unsplash.com/photo-1597635814968-d26d10cebd89?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
           }}
           style={styles.image}
         >
@@ -115,7 +115,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     height: 60,
     color: "black",
-    // color: "white",
     fontWeight: "bold",
     textAlign: "center",
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -123,7 +122,6 @@ const styles = StyleSheet.create({
     padding: 15,
     justifyContent: "center",
     flexDirection: "row",
-    // width: 100,
     alignSelf: "center",
   },
   text2: {
@@ -138,7 +136,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexDirection: "row",
     flexWrap: "wrap",
-    // width: 200,
     alignSelf: "center",
   },
   input: {
@@ -148,7 +145,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF50",
     padding: 15,
     color: "#7E2D29",
-    // marginBottom: 20,
     marginTop: 25,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
@@ -159,48 +155,8 @@ const styles = StyleSheet.create({
     width: 150,
     marginBottom: 10,
     justifyContent: "center",
-    // height: 15,
     justifyContent: "center",
     flexDirection: "row",
-    textAlign: "center",
-    alignContent: "center",
-    alignSelf: "center",
-  },
-  event: {
-    flex: 0.5,
-    paddingVertical: 20,
-    backgroundColor: "#00B8FF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textBox: {
-    flex: 0.5,
-    backgroundColor: "#FAC5DE",
-    padding: 5,
-    fontSize: 18,
-    borderWidth: 0.5,
-    marginLeft: 5,
-    marginRight: 5,
-    height: 120,
-    width: 300,
-    alignSelf: "center",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "black",
-  },
-  paragraph: {
-    alignSelf: "center",
-    justifyContent: "center",
-    fontSize: 12,
-  },
-  button: {
-    color: "white",
-    backgroundColor: "#71C8E2",
-    fontSize: 18,
-    width: 110,
-    marginBottom: 10,
-    justifyContent: "center",
-    height: 45,
     textAlign: "center",
     alignContent: "center",
     alignSelf: "center",
