@@ -101,7 +101,7 @@ export default class App extends Component {
               // backgroundColor: "#71C8E2",
               // borderColor: "#2e2c2b",
             },
-            headerTitleStyle: { color: "#AE744E" },
+            headerTitleStyle: { color: "white" },
           }}
         >
           <Stack.Screen
@@ -109,7 +109,7 @@ export default class App extends Component {
             component={Welcome}
             options={{
               headerStyle: { backgroundColor: "#1A2425" },
-              headerTitleStyle: { color: "#AE744E" },
+              headerTitleStyle: { color: "white" },
             }}
           />
           <Stack.Screen name="Login" component={Login} />
@@ -120,7 +120,7 @@ export default class App extends Component {
               title: "Events",
               // tintColor: { color: "#AE744E" },
               headerStyle: { backgroundColor: "black" },
-              headerTitleStyle: { color: "#AE744E" },
+              headerTitleStyle: { color: "white" },
             }}
           />
           <Stack.Screen
@@ -129,7 +129,7 @@ export default class App extends Component {
             options={{
               title: "On My Way",
               headerStyle: { backgroundColor: "black" },
-              headerTitleStyle: { color: "#AE744E" },
+              headerTitleStyle: { color: "white" },
             }}
           />
           <Stack.Screen
@@ -138,7 +138,7 @@ export default class App extends Component {
             options={{
               title: "On My Way",
               headerStyle: { backgroundColor: "black" },
-              headerTitleStyle: { color: "#AE744E" },
+              headerTitleStyle: { color: "white" },
             }}
           />
         </Stack.Navigator>
