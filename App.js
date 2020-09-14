@@ -11,16 +11,15 @@ import {
   Profile,
   Settings,
   ViewProfile,
-} from "./src/components"
+} from "./src/components";
 import Login from "./eLogin";
-
 
 import { StyleSheet, Button, View, Text } from "react-native";
 
 import { NavigationContainer } from "@react-navigation/native";
-import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs"
+import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
 import { TabActions } from "@react-navigation/native";
 
 const Stack = createStackNavigator();
@@ -89,7 +88,7 @@ const createBottomTabs = (props) => {
       />
     </MaterialBottomTabs.Navigator>
   );
-}
+};
 
 export default class App extends Component {
   render() {
@@ -98,20 +97,19 @@ export default class App extends Component {
         <Stack.Navigator
           screenOptions={{
             headerStyle: {
-              backgroundColor: "#71C8E2",
-              borderColor: "#2e2c2b",
+              backgroundColor: "#1A2425",
+              // backgroundColor: "#71C8E2",
+              // borderColor: "#2e2c2b",
             },
-            headerTitleStyle: {
-              color: "black",
-            },
+            headerTitleStyle: { color: "white" },
           }}
         >
           <Stack.Screen
             name="Home"
             component={Welcome}
             options={{
-              headerStyle: { backgroundColor: "#71C8E2" },
-              headerTitleStyle: { color: "black" },
+              headerStyle: { backgroundColor: "#1A2425" },
+              headerTitleStyle: { color: "white" },
             }}
           />
           <Stack.Screen name="Login" component={Login} />
@@ -119,7 +117,8 @@ export default class App extends Component {
             name="Tabs"
             children={createBottomTabs}
             options={{
-              title: "On My Way",
+              title: "Events",
+              // tintColor: { color: "#AE744E" },
               headerStyle: { backgroundColor: "black" },
               headerTitleStyle: { color: "white" },
             }}
@@ -147,15 +146,3 @@ export default class App extends Component {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
